@@ -1,7 +1,7 @@
-import type { PartyMember, Enemy, Encounter, CombatState, AppSettings } from './types';
+import type { PartyMember, Enemy, Encounter, EncounterEntry, CombatState, AppSettings } from './types';
 import { DEFAULT_SETTINGS } from './constants';
 
-interface StorageAdapter {
+export interface StorageAdapter {
 	getParty(): Promise<PartyMember[]>;
 	savePartyMember(member: PartyMember): Promise<void>;
 	deletePartyMember(id: string): Promise<void>;
@@ -20,6 +20,187 @@ interface StorageAdapter {
 
 	getSettings(): Promise<AppSettings>;
 	saveSettings(settings: AppSettings): Promise<void>;
+}
+
+export class D1StorageAdapter implements StorageAdapter {
+	constructor(private db: D1Database) {}
+
+	async getParty(): Promise<PartyMember[]> {
+		const rows = await this.db
+			.prepare('SELECT * FROM party_members ORDER BY name')
+			.all();
+		return rows.results.map((r: Record<string, unknown>) => ({
+			id: r.id as string,
+			name: r.name as string,
+			ac: r.ac as number,
+			maxHp: r.max_hp as number,
+			currentHp: r.current_hp as number,
+			level: r.level as number,
+			passivePerception: r.passive_perception as number,
+			portraitUrl: r.portrait_url as string | undefined
+		}));
+	}
+
+	async savePartyMember(member: PartyMember): Promise<void> {
+		await this.db
+			.prepare(
+				`INSERT INTO party_members (id, name, ac, max_hp, current_hp, level, passive_perception, portrait_url, updated_at)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+				 ON CONFLICT(id) DO UPDATE SET
+				   name = excluded.name, ac = excluded.ac, max_hp = excluded.max_hp,
+				   current_hp = excluded.current_hp, level = excluded.level,
+				   passive_perception = excluded.passive_perception,
+				   portrait_url = excluded.portrait_url, updated_at = datetime('now')`
+			)
+			.bind(member.id, member.name, member.ac, member.maxHp, member.currentHp, member.level, member.passivePerception, member.portraitUrl ?? null)
+			.run();
+	}
+
+	async deletePartyMember(id: string): Promise<void> {
+		await this.db.prepare('DELETE FROM party_members WHERE id = ?').bind(id).run();
+	}
+
+	async getCustomEnemies(): Promise<Enemy[]> {
+		const rows = await this.db
+			.prepare("SELECT * FROM enemies WHERE source = 'custom' ORDER BY name")
+			.all();
+		return rows.results.map((r: Record<string, unknown>) => ({
+			id: r.id as string,
+			name: r.name as string,
+			maxHp: r.max_hp as number,
+			ac: r.ac as number,
+			abilities: (r.abilities as string) || undefined,
+			source: r.source as 'custom' | 'srd',
+			srdSlug: (r.srd_slug as string) || undefined
+		}));
+	}
+
+	async saveCustomEnemy(enemy: Enemy): Promise<void> {
+		await this.db
+			.prepare(
+				`INSERT INTO enemies (id, name, max_hp, ac, abilities, source, srd_slug, updated_at)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+				 ON CONFLICT(id) DO UPDATE SET
+				   name = excluded.name, max_hp = excluded.max_hp, ac = excluded.ac,
+				   abilities = excluded.abilities, source = excluded.source,
+				   srd_slug = excluded.srd_slug, updated_at = datetime('now')`
+			)
+			.bind(enemy.id, enemy.name, enemy.maxHp, enemy.ac, enemy.abilities ?? null, enemy.source, enemy.srdSlug ?? null)
+			.run();
+	}
+
+	async deleteCustomEnemy(id: string): Promise<void> {
+		await this.db.prepare('DELETE FROM enemies WHERE id = ?').bind(id).run();
+	}
+
+	async getEncounters(): Promise<Encounter[]> {
+		const rows = await this.db.prepare('SELECT * FROM encounters ORDER BY name').all();
+		const encounters: Encounter[] = [];
+		for (const r of rows.results as Record<string, unknown>[]) {
+			const entryRows = await this.db
+				.prepare('SELECT enemy_id, quantity FROM encounter_entries WHERE encounter_id = ?')
+				.bind(r.id as string)
+				.all();
+			encounters.push({
+				id: r.id as string,
+				name: r.name as string,
+				notes: (r.notes as string) || undefined,
+				entries: entryRows.results.map((e: Record<string, unknown>) => ({
+					enemyId: e.enemy_id as string,
+					quantity: e.quantity as number
+				}))
+			});
+		}
+		return encounters;
+	}
+
+	async saveEncounter(encounter: Encounter): Promise<void> {
+		const stmts = [
+			this.db
+				.prepare(
+					`INSERT INTO encounters (id, name, notes, updated_at)
+					 VALUES (?, ?, ?, datetime('now'))
+					 ON CONFLICT(id) DO UPDATE SET
+					   name = excluded.name, notes = excluded.notes, updated_at = datetime('now')`
+				)
+				.bind(encounter.id, encounter.name, encounter.notes ?? null),
+			this.db
+				.prepare('DELETE FROM encounter_entries WHERE encounter_id = ?')
+				.bind(encounter.id),
+			...encounter.entries.map((e) =>
+				this.db
+					.prepare('INSERT INTO encounter_entries (encounter_id, enemy_id, quantity) VALUES (?, ?, ?)')
+					.bind(encounter.id, e.enemyId, e.quantity)
+			)
+		];
+		await this.db.batch(stmts);
+	}
+
+	async deleteEncounter(id: string): Promise<void> {
+		await this.db.batch([
+			this.db.prepare('DELETE FROM encounter_entries WHERE encounter_id = ?').bind(id),
+			this.db.prepare('DELETE FROM encounters WHERE id = ?').bind(id)
+		]);
+	}
+
+	async getCombatState(): Promise<CombatState | null> {
+		const row = await this.db
+			.prepare('SELECT state_json FROM combat_state WHERE id = 1')
+			.first<{ state_json: string }>();
+		if (!row) return null;
+		try {
+			return JSON.parse(row.state_json) as CombatState;
+		} catch {
+			return null;
+		}
+	}
+
+	async saveCombatState(state: CombatState): Promise<void> {
+		await this.db
+			.prepare(
+				`INSERT INTO combat_state (id, state_json, updated_at)
+				 VALUES (1, ?, datetime('now'))
+				 ON CONFLICT(id) DO UPDATE SET
+				   state_json = excluded.state_json, updated_at = datetime('now')`
+			)
+			.bind(JSON.stringify(state))
+			.run();
+	}
+
+	async clearCombatState(): Promise<void> {
+		await this.db.prepare('DELETE FROM combat_state WHERE id = 1').run();
+	}
+
+	async getSettings(): Promise<AppSettings> {
+		const row = await this.db
+			.prepare('SELECT settings_json FROM settings WHERE id = 1')
+			.first<{ settings_json: string }>();
+		if (!row) return { ...DEFAULT_SETTINGS };
+		try {
+			return { ...DEFAULT_SETTINGS, ...JSON.parse(row.settings_json) } as AppSettings;
+		} catch {
+			return { ...DEFAULT_SETTINGS };
+		}
+	}
+
+	async saveSettings(settings: AppSettings): Promise<void> {
+		await this.db
+			.prepare(
+				`INSERT INTO settings (id, settings_json, updated_at)
+				 VALUES (1, ?, datetime('now'))
+				 ON CONFLICT(id) DO UPDATE SET
+				   settings_json = excluded.settings_json, updated_at = datetime('now')`
+			)
+			.bind(JSON.stringify(settings))
+			.run();
+	}
+}
+
+export function createStorage(platform: App.Platform | undefined): StorageAdapter {
+	if (platform?.env?.DB) {
+		return new D1StorageAdapter(platform.env.DB);
+	}
+	return new LocalStorageAdapter();
 }
 
 class LocalStorageAdapter implements StorageAdapter {
@@ -133,5 +314,3 @@ class LocalStorageAdapter implements StorageAdapter {
 		this.set('settings', settings);
 	}
 }
-
-export const storage: StorageAdapter = new LocalStorageAdapter();

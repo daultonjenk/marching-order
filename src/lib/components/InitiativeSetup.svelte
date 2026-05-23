@@ -1,28 +1,17 @@
 <script lang="ts">
 	import type { Combatant, CombatState, PartyMember, Enemy, Encounter } from '$lib/types';
-	import { storage } from '$lib/storage';
-	import { onMount } from 'svelte';
 
 	interface Props {
+		party: PartyMember[];
+		enemies: Enemy[];
+		encounters: Encounter[];
 		onStart: (state: CombatState) => void;
 	}
 
-	let { onStart }: Props = $props();
+	let { party, enemies, encounters, onStart }: Props = $props();
 
-	let party = $state<PartyMember[]>([]);
-	let enemies = $state<Enemy[]>([]);
-	let encounters = $state<Encounter[]>([]);
-	let combatants = $state<Array<{ name: string; type: 'player' | 'enemy'; initiative: number; maxHp: number; ac: number; level?: number; passivePerception?: number }>>([]);
-	let step = $state<'select' | 'initiative'>('select');
-	let currentInitiativeIndex = $state(0);
-	let initiativeInput = $state('');
-
-	onMount(async () => {
-		party = await storage.getParty();
-		enemies = await storage.getCustomEnemies();
-		encounters = await storage.getEncounters();
-
-		combatants = party.map((p) => ({
+	let combatants = $state<Array<{ name: string; type: 'player' | 'enemy'; initiative: number; maxHp: number; ac: number; level?: number; passivePerception?: number }>>(
+		party.map((p) => ({
 			name: p.name,
 			type: 'player' as const,
 			initiative: 0,
@@ -30,8 +19,11 @@
 			ac: p.ac,
 			level: p.level,
 			passivePerception: p.passivePerception
-		}));
-	});
+		}))
+	);
+	let step = $state<'select' | 'initiative'>('select');
+	let currentInitiativeIndex = $state(0);
+	let initiativeInput = $state('');
 
 	function loadEncounter(encounter: Encounter) {
 		for (const entry of encounter.entries) {

@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { Enemy, Encounter, EncounterEntry } from '$lib/types';
-	import { storage } from '$lib/storage';
-	import { onMount } from 'svelte';
+	import type { Enemy, Encounter } from '$lib/types';
+	import { enhance } from '$app/forms';
+	import type { PageData } from './$types';
 
-	let enemies = $state<Enemy[]>([]);
-	let encounters = $state<Encounter[]>([]);
+	let { data }: { data: PageData } = $props();
+	let enemies = $derived(data.enemies);
+	let encounters = $derived(data.encounters);
 
 	let showEnemyForm = $state(false);
 	let editingEnemy = $state<Enemy | null>(null);
@@ -18,11 +19,6 @@
 	let encounterName = $state('');
 	let encounterNotes = $state('');
 	let encounterEntries = $state<Array<{ enemyId: string; quantity: number }>>([]);
-
-	onMount(async () => {
-		enemies = await storage.getCustomEnemies();
-		encounters = await storage.getEncounters();
-	});
 
 	function resetEnemyForm() {
 		enemyName = '';
@@ -40,26 +36,6 @@
 		enemyAc = enemy.ac;
 		enemyAbilities = enemy.abilities ?? '';
 		showEnemyForm = true;
-	}
-
-	async function saveEnemy() {
-		if (!enemyName.trim()) return;
-		const enemy: Enemy = {
-			id: editingEnemy?.id ?? crypto.randomUUID(),
-			name: enemyName.trim(),
-			maxHp: enemyMaxHp,
-			ac: enemyAc,
-			abilities: enemyAbilities.trim() || undefined,
-			source: 'custom'
-		};
-		await storage.saveCustomEnemy(enemy);
-		enemies = await storage.getCustomEnemies();
-		resetEnemyForm();
-	}
-
-	async function deleteEnemy(id: string) {
-		await storage.deleteCustomEnemy(id);
-		enemies = await storage.getCustomEnemies();
 	}
 
 	function resetEncounterForm() {
@@ -92,26 +68,8 @@
 		encounterEntries = encounterEntries.filter((e) => e.enemyId !== enemyId);
 	}
 
-	async function saveEncounter() {
-		if (!encounterName.trim() || encounterEntries.length === 0) return;
-		const encounter: Encounter = {
-			id: editingEncounter?.id ?? crypto.randomUUID(),
-			name: encounterName.trim(),
-			entries: encounterEntries,
-			notes: encounterNotes.trim() || undefined
-		};
-		await storage.saveEncounter(encounter);
-		encounters = await storage.getEncounters();
-		resetEncounterForm();
-	}
-
-	async function deleteEncounter(id: string) {
-		await storage.deleteEncounter(id);
-		encounters = await storage.getEncounters();
-	}
-
 	function getEnemyName(id: string): string {
-		return enemies.find((e) => e.id === id)?.name ?? 'Unknown';
+		return enemies.find((e: Enemy) => e.id === id)?.name ?? 'Unknown';
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -153,16 +111,22 @@
 				style="box-shadow: var(--shadow-sm);"
 			>
 				<form
-					onsubmit={(e) => {
-						e.preventDefault();
-						saveEnemy();
+					method="POST"
+					action="?/saveEnemy"
+					use:enhance={() => {
+						return async ({ update }) => {
+							await update();
+							resetEnemyForm();
+						};
 					}}
 					class="flex flex-col gap-4"
 				>
+					<input type="hidden" name="id" value={editingEnemy?.id ?? crypto.randomUUID()} />
 					<div>
 						<label for="ename" class="mb-1 block text-sm font-semibold">Name</label>
 						<input
 							id="ename"
+							name="name"
 							type="text"
 							bind:value={enemyName}
 							placeholder="e.g., Goblin"
@@ -175,6 +139,7 @@
 							<label for="ehp" class="mb-1 block text-sm font-semibold">Max HP</label>
 							<input
 								id="ehp"
+								name="maxHp"
 								type="number"
 								bind:value={enemyMaxHp}
 								min="1"
@@ -185,6 +150,7 @@
 							<label for="eac" class="mb-1 block text-sm font-semibold">AC</label>
 							<input
 								id="eac"
+								name="ac"
 								type="number"
 								bind:value={enemyAc}
 								min="1"
@@ -198,6 +164,7 @@
 						>
 						<input
 							id="eabilities"
+							name="abilities"
 							type="text"
 							bind:value={enemyAbilities}
 							placeholder="e.g., Pack Tactics, Nimble Escape"
@@ -258,12 +225,15 @@
 								>
 									Edit
 								</button>
-								<button
-									onclick={() => deleteEnemy(enemy.id)}
-									class="cursor-pointer rounded-sm border border-border bg-bg-paper px-3 py-2 text-sm font-semibold text-red-500 hover:border-red-500 hover:bg-red-50"
-								>
-									Delete
-								</button>
+								<form method="POST" action="?/deleteEnemy" use:enhance>
+									<input type="hidden" name="id" value={enemy.id} />
+									<button
+										type="submit"
+										class="cursor-pointer rounded-sm border border-border bg-bg-paper px-3 py-2 text-sm font-semibold text-red-500 hover:border-red-500 hover:bg-red-50"
+									>
+										Delete
+									</button>
+								</form>
 							</div>
 						</div>
 					</div>
@@ -293,9 +263,17 @@
 				style="box-shadow: var(--shadow-sm);"
 			>
 				<form
-					onsubmit={(e) => {
-						e.preventDefault();
-						saveEncounter();
+					method="POST"
+					action="?/saveEncounter"
+					use:enhance={({ formData }) => {
+						formData.set('id', editingEncounter?.id ?? crypto.randomUUID());
+						formData.set('name', encounterName);
+						formData.set('notes', encounterNotes);
+						formData.set('entries', JSON.stringify(encounterEntries));
+						return async ({ update }) => {
+							await update();
+							resetEncounterForm();
+						};
 					}}
 					class="flex flex-col gap-4"
 				>
@@ -440,12 +418,15 @@
 								>
 									Edit
 								</button>
-								<button
-									onclick={() => deleteEncounter(encounter.id)}
-									class="cursor-pointer rounded-sm border border-border bg-bg-paper px-3 py-2 text-sm font-semibold text-red-500 hover:border-red-500 hover:bg-red-50"
-								>
+								<form method="POST" action="?/deleteEncounter" use:enhance>
+									<input type="hidden" name="id" value={encounter.id} />
+									<button
+										type="submit"
+										class="cursor-pointer rounded-sm border border-border bg-bg-paper px-3 py-2 text-sm font-semibold text-red-500 hover:border-red-500 hover:bg-red-50"
+									>
 									Delete
-								</button>
+									</button>
+								</form>
 							</div>
 						</div>
 					</div>

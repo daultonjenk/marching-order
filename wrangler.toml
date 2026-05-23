@@ -1,0 +1,8 @@
+name = "marching-order"
+compatibility_date = "2025-05-23"
+pages_build_output_dir = ".svelte-kit/cloudflare"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "marching-order"
+database_id = "8d73973b-880e-4ded-86eb-f79aae087514"

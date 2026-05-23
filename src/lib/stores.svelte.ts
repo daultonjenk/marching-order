@@ -1,13 +1,12 @@
 import type { AppSettings } from './types';
 import { DEFAULT_SETTINGS, ACCENT_COLORS } from './constants';
-import { storage } from './storage';
 
 class SettingsState {
 	current = $state<AppSettings>({ ...DEFAULT_SETTINGS });
 	loaded = $state(false);
 
-	async load() {
-		this.current = await storage.getSettings();
+	init(serverSettings: AppSettings) {
+		this.current = { ...DEFAULT_SETTINGS, ...serverSettings };
 		this.applyAccentColor();
 		this.loaded = true;
 	}
@@ -15,7 +14,11 @@ class SettingsState {
 	async update(patch: Partial<AppSettings>) {
 		this.current = { ...this.current, ...patch };
 		this.applyAccentColor();
-		await storage.saveSettings(this.current);
+		await fetch('/api/settings', {
+			method: 'POST',
+			body: JSON.stringify(this.current),
+			headers: { 'Content-Type': 'application/json' }
+		});
 	}
 
 	private applyAccentColor() {

@@ -4,12 +4,13 @@
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import { settings } from '$lib/stores.svelte';
 	import { onMount } from 'svelte';
+	import type { LayoutData } from './$types';
 
-	let { children } = $props();
+	let { children, data }: { children: any; data: LayoutData } = $props();
 	let sidebarOpen = $state(false);
 
 	onMount(() => {
-		settings.load();
+		settings.init(data.settings);
 	});
 </script>
 

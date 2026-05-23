@@ -1,16 +1,15 @@
 <script lang="ts">
-	import type { PartyMember } from '$lib/types';
 	import { settings } from '$lib/stores.svelte';
-	import { storage } from '$lib/storage';
 	import { onMount, onDestroy } from 'svelte';
+	import type { PageData } from './$types';
 
-	let party = $state<PartyMember[]>([]);
+	let { data }: { data: PageData } = $props();
+	let party = $derived(data.party);
 	let currentIndex = $state(0);
 	let visible = $state(true);
 	let timer: ReturnType<typeof setInterval> | null = null;
 
-	onMount(async () => {
-		party = await storage.getParty();
+	onMount(() => {
 		if (party.length > 1) {
 			startSlideshow();
 		}

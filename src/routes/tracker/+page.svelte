@@ -3,24 +3,25 @@
 	import { settings } from '$lib/stores.svelte';
 	import CombatantCard from '$lib/components/CombatantCard.svelte';
 	import InitiativeSetup from '$lib/components/InitiativeSetup.svelte';
-	import { storage } from '$lib/storage';
-	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
 
-	let combatState = $state<CombatState | null>(null);
-	let phase = $state<'setup' | 'combat'>('setup');
+	let { data }: { data: PageData } = $props();
 
-	onMount(async () => {
-		const saved = await storage.getCombatState();
-		if (saved && saved.combatants.length > 0) {
-			combatState = saved;
-			phase = 'combat';
-		}
-	});
+	let combatState = $state<CombatState | null>(data.combatState);
+	let phase = $state<'setup' | 'combat'>(data.combatState ? 'combat' : 'setup');
+
+	function saveCombatToServer(state: CombatState) {
+		fetch('/api/combat', {
+			method: 'POST',
+			body: JSON.stringify(state),
+			headers: { 'Content-Type': 'application/json' }
+		});
+	}
 
 	function startCombat(state: CombatState) {
 		combatState = state;
 		phase = 'combat';
-		storage.saveCombatState(state);
+		saveCombatToServer(state);
 	}
 
 	function nextTurn() {
@@ -62,7 +63,7 @@
 			round: nextRound,
 			history: [...combatState.history, historyEntry]
 		};
-		storage.saveCombatState(combatState);
+		saveCombatToServer(combatState);
 	}
 
 	function previousTurn() {
@@ -76,13 +77,13 @@
 			combatants: lastEntry.snapshot,
 			history: combatState.history.slice(0, -1)
 		};
-		storage.saveCombatState(combatState);
+		saveCombatToServer(combatState);
 	}
 
 	function endCombat() {
 		combatState = null;
 		phase = 'setup';
-		storage.clearCombatState();
+		fetch('/api/combat', { method: 'DELETE' });
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -126,7 +127,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if phase === 'setup'}
-	<InitiativeSetup onStart={startCombat} />
+	<InitiativeSetup party={data.party} enemies={data.enemies} encounters={data.encounters} onStart={startCombat} />
 {:else if combatState && activeCombatant}
 	<!-- Combat Navbar Override -->
 	<div

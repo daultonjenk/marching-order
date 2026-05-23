@@ -24,3 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Settings page with toggle switches for display options (player HP, enemy HP/AC, HP format), combat settings, and accent color picker
 - CombatantCard component with three visual variants and DM-only data visibility rules
 - InitiativeSetup component with two-step flow: combatant selection then rapid initiative entry
+- Cloudflare D1 database with schema migration for party members, enemies, encounters, combat state, and settings
+- D1 storage adapter with full CRUD operations using batched queries and upserts
+- Server-side data loading via SvelteKit load functions and form actions
+- API endpoints for combat state (`/api/combat`) and settings (`/api/settings`) persistence
+- `wrangler.toml` configuration for Cloudflare Pages + D1 binding

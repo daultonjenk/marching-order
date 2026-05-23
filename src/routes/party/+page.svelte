@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { PartyMember } from '$lib/types';
-	import { storage } from '$lib/storage';
-	import { onMount } from 'svelte';
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import type { PageData } from './$types';
 
-	let party = $state<PartyMember[]>([]);
+	let { data }: { data: PageData } = $props();
+	let party = $derived(data.party);
 	let editing = $state<PartyMember | null>(null);
 	let showForm = $state(false);
 
@@ -12,10 +14,6 @@
 	let formMaxHp = $state(10);
 	let formLevel = $state(1);
 	let formPassivePerception = $state(10);
-
-	onMount(async () => {
-		party = await storage.getParty();
-	});
 
 	function resetForm() {
 		formName = '';
@@ -35,29 +33,6 @@
 		formLevel = member.level;
 		formPassivePerception = member.passivePerception;
 		showForm = true;
-	}
-
-	async function saveMember() {
-		if (!formName.trim()) return;
-
-		const member: PartyMember = {
-			id: editing?.id ?? crypto.randomUUID(),
-			name: formName.trim(),
-			ac: formAc,
-			maxHp: formMaxHp,
-			currentHp: editing?.currentHp ?? formMaxHp,
-			level: formLevel,
-			passivePerception: formPassivePerception
-		};
-
-		await storage.savePartyMember(member);
-		party = await storage.getParty();
-		resetForm();
-	}
-
-	async function deleteMember(id: string) {
-		await storage.deletePartyMember(id);
-		party = await storage.getParty();
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -96,16 +71,23 @@
 				{editing ? 'Edit' : 'Add'} Party Member
 			</h2>
 			<form
-				onsubmit={(e) => {
-					e.preventDefault();
-					saveMember();
+				method="POST"
+				action="?/save"
+				use:enhance={() => {
+					return async ({ update }) => {
+						await update();
+						resetForm();
+					};
 				}}
 				class="flex flex-col gap-4"
 			>
+				<input type="hidden" name="id" value={editing?.id ?? crypto.randomUUID()} />
+				<input type="hidden" name="currentHp" value={editing?.currentHp ?? formMaxHp} />
 				<div>
 					<label for="name" class="mb-1 block text-sm font-semibold">Name</label>
 					<input
 						id="name"
+						name="name"
 						type="text"
 						bind:value={formName}
 						placeholder="Character name"
@@ -118,6 +100,7 @@
 						<label for="ac" class="mb-1 block text-sm font-semibold">AC</label>
 						<input
 							id="ac"
+							name="ac"
 							type="number"
 							bind:value={formAc}
 							min="1"
@@ -128,6 +111,7 @@
 						<label for="maxHp" class="mb-1 block text-sm font-semibold">Max HP</label>
 						<input
 							id="maxHp"
+							name="maxHp"
 							type="number"
 							bind:value={formMaxHp}
 							min="1"
@@ -138,6 +122,7 @@
 						<label for="level" class="mb-1 block text-sm font-semibold">Level</label>
 						<input
 							id="level"
+							name="level"
 							type="number"
 							bind:value={formLevel}
 							min="1"
@@ -149,6 +134,7 @@
 						<label for="pp" class="mb-1 block text-sm font-semibold">Passive Perception</label>
 						<input
 							id="pp"
+							name="passivePerception"
 							type="number"
 							bind:value={formPassivePerception}
 							class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
@@ -217,12 +203,15 @@
 							>
 								Edit
 							</button>
-							<button
-								onclick={() => deleteMember(member.id)}
-								class="cursor-pointer rounded-sm border border-border bg-bg-paper px-3 py-2 text-sm font-semibold text-red-500 transition-all hover:border-red-500 hover:bg-red-50"
-							>
-								Delete
-							</button>
+							<form method="POST" action="?/delete" use:enhance>
+								<input type="hidden" name="id" value={member.id} />
+								<button
+									type="submit"
+									class="cursor-pointer rounded-sm border border-border bg-bg-paper px-3 py-2 text-sm font-semibold text-red-500 transition-all hover:border-red-500 hover:bg-red-50"
+								>
+									Delete
+								</button>
+							</form>
 						</div>
 					</div>
 				</div>
