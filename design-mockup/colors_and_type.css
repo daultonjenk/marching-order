@@ -1,0 +1,315 @@
+/* ============================================================
+ * daulton.co Design System — Tokens
+ * Source of truth: daultonjenk/daulton-personal-website
+ *   src/styles/globals.css   (warm + Wexford palette + diamond wallpaper)
+ *   src/lib/corkBoardTheme.js (cork frame, push-pin, sticky-card swatches)
+ *   tailwind.config.js        (font stacks)
+ *   daulton-theme-guide.md    (system rules)
+ *
+ * Surface model:
+ *   .surface-warm     — daulton.co, /resume, brief.daulton.co (default)
+ *   .surface-teldire  — teldire.daulton.co (warm flavor, more paper/notebook)
+ *   .surface-wexford  — wexford.daulton.co (cold blue fantasy variant)
+ * Toggle dark mode by setting data-theme="dark" on <html>.
+ * ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ─── Base tokens (light) ─────────────────────────────────── */
+:root {
+  /* Warm "Birch & Stone" family — main site, resume, brief */
+  --bg-primary-warm:  #F0ECE5;
+  --bg-nav-warm:      #A4988E;
+  --bg-surface-warm:  #E8E2D8;
+  --bg-paper:         #F9F5F0;
+  --bg-card-warm:     #F0EAE2;
+
+  --text-primary-warm:     #2C2820;
+  --text-heading-warm:     #201C14;
+  --text-muted-warm:       #7A766A;
+  --text-menu-warm:        #1A1610;
+  --text-menu-warm-strong: #120F0A;
+
+  --border-warm:      #CAC2B8;
+
+  /* Accents (warm family) — terracotta + earth + project highlights */
+  --accent-warm:      #9C7848;   /* shared link / primary accent */
+  --accent-deep-warm: #7C5C30;   /* hover/deep state */
+  --accent-tilted:    #5cb87a;   /* Get Tilted! green */
+  --accent-teldire:   #d4874a;   /* Teldire orange */
+  --accent-about:     #a9862f;   /* About Me antique gold */
+  --accent-brief:     #C96442;   /* Morning Brief terracotta (theme-color meta) */
+
+  /* Wexford cool-blue family */
+  --bg-nav-wexford:       #0c2340;
+  --bg-sidebar-wexford:   #091b30;
+  --bg-page-wexford:      #0d1f35;
+  --accent-wexford:       #4d9fd6;
+  --text-wexford-heading: #b8d8ed;
+  --text-wexford-muted:   #5a84a4;
+  --border-wexford:       rgba(77, 159, 214, 0.18);
+  --shadow-wexford:       0 1px 10px rgba(0, 0, 0, 0.4);
+
+  /* Cork board (home page only) */
+  --cork-bg:               #B07840;
+  --cork-card-yellow:      #E5CB6C;
+  --cork-card-peach:       #E6B078;
+  --cork-card-rose:        #DA9CB1;
+  --cork-card-sage:        #9FCDB8;
+  --cork-title:            #352A18;
+  --cork-description:      #5A4230;
+  --cork-tag:              #D85E30;
+  --cork-pin-light:        radial-gradient(circle at 35% 35%, #FC5A47, #A6101C);
+  --cork-pin-dark:         radial-gradient(circle at 35% 35%, #B84A35, #601212);
+  --cork-frame-light:      linear-gradient(160deg, #A5A19E 0%, #9D9995 35%, #97938F 55%, #A09B98 75%, #A4A09D 100%);
+  --cork-frame-dark:       linear-gradient(160deg, #686868 0%, #525252 35%, #464646 55%, #565656 75%, #626262 100%);
+
+  /* Shadows — warm family */
+  --shadow-soft-warm: 0 10px 26px rgba(61, 57, 41, 0.08);
+  --shadow-md-warm:   0 4px 12px rgba(61, 57, 41, 0.10);
+  --shadow-lg-warm:   0 8px 24px rgba(61, 57, 41, 0.12);
+  --shadow-nav-warm:  0 1px 8px rgba(61, 57, 41, 0.14);
+  --shadow-card-cork: 3px 5px 12px rgba(0, 0, 0, 0.28);
+  --shadow-frame-light: 0 1px 0 rgba(255,255,255,0.75) inset, 0 -1px 0 rgba(0,0,0,0.09) inset, 0 6px 33px rgba(61,57,41,0.318);
+  --shadow-frame-dark:  0 1px 0 rgba(255,255,255,0.12) inset, 0 -1px 0 rgba(0,0,0,0.35) inset, 0 6px 28px rgba(0,0,0,0.5);
+
+  /* Type stacks */
+  --font-display: 'Lora', Georgia, serif;
+  --font-body:    'Lora', Georgia, serif;
+  --font-ui:      'Libre Baskerville', Georgia, serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-cinzel:  'Cinzel', Georgia, serif;          /* Wexford only */
+  --font-fell:    'IM Fell English', Georgia, serif; /* Wexford flavor */
+
+  /* Motion */
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-mid:  250ms;
+  --duration-slow: 400ms;
+
+  /* Radii */
+  --radius-xs:  3px;   /* sticky note edge */
+  --radius-sm:  8px;   /* nav buttons, small chrome */
+  --radius-md:  16px;  /* paper cards, articles */
+  --radius-lg:  20px;  /* hero panels */
+  --radius-xl:  24px;  /* cork frame, large surfaces */
+  --radius-pill: 999px;
+
+  /* Spacing scale (used in the live site) */
+  --space-1: 0.25rem;
+  --space-2: 0.45rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.8rem;
+  --space-8: 2.5rem;
+  --space-10: 3rem;
+
+  /* Diamond wallpaper (light variant) — outer + inner diamond + dots */
+  --bg-wallpaper-warm: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpolygon points='32,2 62,32 32,62 2,32' fill='none' stroke='rgba(138,102,61,0.14)' stroke-width='0.8'/%3E%3Cpolygon points='32,18 46,32 32,46 18,32' fill='none' stroke='rgba(138,102,61,0.07)' stroke-width='0.6'/%3E%3Ccircle cx='32' cy='32' r='1.5' fill='rgba(138,102,61,0.10)'/%3E%3Ccircle cx='0' cy='0' r='2' fill='rgba(138,102,61,0.10)'/%3E%3Ccircle cx='64' cy='0' r='2' fill='rgba(138,102,61,0.10)'/%3E%3Ccircle cx='0' cy='64' r='2' fill='rgba(138,102,61,0.10)'/%3E%3Ccircle cx='64' cy='64' r='2' fill='rgba(138,102,61,0.10)'/%3E%3C/svg%3E");
+  --bg-wallpaper-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpolygon points='32,2 62,32 32,62 2,32' fill='none' stroke='rgba(210,165,110,0.15)' stroke-width='0.8'/%3E%3Cpolygon points='32,18 46,32 32,46 18,32' fill='none' stroke='rgba(210,165,110,0.08)' stroke-width='0.6'/%3E%3Ccircle cx='32' cy='32' r='1.5' fill='rgba(210,165,110,0.10)'/%3E%3Ccircle cx='0' cy='0' r='2' fill='rgba(210,165,110,0.10)'/%3E%3Ccircle cx='64' cy='0' r='2' fill='rgba(210,165,110,0.10)'/%3E%3Ccircle cx='0' cy='64' r='2' fill='rgba(210,165,110,0.10)'/%3E%3Ccircle cx='64' cy='64' r='2' fill='rgba(210,165,110,0.10)'/%3E%3C/svg%3E");
+}
+
+/* ─── Dark mode overrides ─────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-primary-warm:   #2A2520;
+  --bg-nav-warm:       #1E1A16;
+  --bg-surface-warm:   #322C27;
+  --bg-paper:          #3A3430;
+  --bg-card-warm:      #3A3430;
+  --text-primary-warm: #E8E0D4;
+  --text-heading-warm: #F0E8DA;
+  --text-muted-warm:   #9A9080;
+  --text-menu-warm:        #EDE3D5;
+  --text-menu-warm-strong: #F6EEE1;
+  --border-warm:       #4A4440;
+  --shadow-soft-warm:  0 10px 26px rgba(0, 0, 0, 0.24);
+  --shadow-md-warm:    0 4px 12px rgba(0, 0, 0, 0.30);
+  --shadow-lg-warm:    0 8px 24px rgba(0, 0, 0, 0.40);
+  --cork-bg:           #4A3C30;
+}
+
+/* ─── Semantic role mapping (default = warm surface) ────── */
+:root,
+.surface-warm {
+  --bg:          var(--bg-primary-warm);
+  --bg-nav:      var(--bg-nav-warm);
+  --bg-surface:  var(--bg-surface-warm);
+  --bg-card:     var(--bg-card-warm);
+  --bg-elevated: var(--bg-paper);
+  --fg:          var(--text-primary-warm);
+  --fg-heading:  var(--text-heading-warm);
+  --fg-muted:    var(--text-muted-warm);
+  --border:      var(--border-warm);
+  --accent:      var(--accent-warm);
+  --accent-hover:var(--accent-deep-warm);
+  --shadow-sm:   var(--shadow-md-warm);
+  --shadow-md:   var(--shadow-soft-warm);
+  --shadow-lg:   var(--shadow-lg-warm);
+  --bg-wallpaper:var(--bg-wallpaper-warm);
+}
+
+[data-theme="dark"] :root,
+[data-theme="dark"] .surface-warm {
+  --bg-wallpaper: var(--bg-wallpaper-dark);
+}
+
+.surface-teldire {
+  /* Teldire == warm-family flavor; same tokens, leans on paper + accent-teldire */
+  --accent:       var(--accent-teldire);
+  --accent-hover: var(--accent-deep-warm);
+}
+
+.surface-wexford {
+  --bg:          var(--bg-page-wexford);
+  --bg-nav:      var(--bg-nav-wexford);
+  --bg-surface:  var(--bg-sidebar-wexford);
+  --bg-card:     rgba(9, 27, 48, 0.86);
+  --bg-elevated: rgba(7, 18, 33, 0.48);
+  --fg:          var(--text-wexford-heading);
+  --fg-heading:  var(--text-wexford-heading);
+  --fg-muted:    var(--text-wexford-muted);
+  --border:      var(--border-wexford);
+  --accent:      var(--accent-wexford);
+  --accent-hover:#7ab8e0;
+  --shadow-sm:   var(--shadow-wexford);
+  --shadow-md:   0 8px 24px rgba(0,0,0,0.5);
+  --shadow-lg:   0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* ─── Type semantics ─────────────────────────────────────── */
+:root {
+  /* Display family — Lora, used for h1/h2/body */
+  --type-h1-size:       clamp(2.5rem, 6vw, 4rem);
+  --type-h1-weight:     600;
+  --type-h1-leading:    1.05;
+  --type-h1-tracking:   -0.02em;
+
+  --type-display-size:    clamp(3rem, 10vw, 5.5rem);  /* Teldire/uppercase hero */
+  --type-display-weight:  700;
+  --type-display-leading: 0.92;
+  --type-display-tracking:-0.04em;
+
+  --type-h2-size:    clamp(1.35rem, 3vw, 1.85rem);
+  --type-h2-weight:  600;
+  --type-h2-leading: 1.18;
+
+  --type-h3-size:    1.2rem;
+  --type-h3-weight:  600;
+  --type-h3-leading: 1.25;
+
+  --type-body-size:    1rem;
+  --type-body-weight:  400;
+  --type-body-leading: 1.7;
+
+  --type-prose-size:    clamp(1rem, 2vw, 1.12rem);
+  --type-prose-leading: 1.8;
+  --type-prose-measure: 68ch;
+
+  /* UI family — Libre Baskerville, used for navigation, chips, eyebrows */
+  --type-eyebrow-size:     0.72rem;
+  --type-eyebrow-weight:   700;
+  --type-eyebrow-tracking: 0.08em;
+  --type-eyebrow-case:     uppercase;
+
+  --type-button-size:     0.84rem;
+  --type-button-weight:   700;
+  --type-button-tracking: 0.08em;
+  --type-button-case:     uppercase;
+
+  --type-meta-size:    0.82rem;
+  --type-meta-weight:  400;
+
+  /* Mono — JetBrains, used for code + machine metadata */
+  --type-mono-size:    0.9rem;
+  --type-mono-weight:  500;
+  --type-mono-leading: 1.55;
+}
+
+/* ─── Base reset (lightweight; copy what's helpful) ──────── */
+html { overscroll-behavior-y: none; }
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image: var(--bg-wallpaper);
+  background-size: 64px 64px;
+  background-repeat: repeat;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1 { font-family: var(--font-display); font-size: var(--type-h1-size); font-weight: var(--type-h1-weight); line-height: var(--type-h1-leading); letter-spacing: var(--type-h1-tracking); color: var(--fg-heading); margin: 0; }
+h2 { font-family: var(--font-display); font-size: var(--type-h2-size); font-weight: var(--type-h2-weight); line-height: var(--type-h2-leading); color: var(--fg-heading); margin: 0; }
+h3 { font-family: var(--font-display); font-size: var(--type-h3-size); font-weight: var(--type-h3-weight); line-height: var(--type-h3-leading); color: var(--fg-heading); margin: 0; }
+
+p { margin: 0 0 1rem; }
+p:last-child { margin-bottom: 0; }
+
+a { color: var(--accent); text-decoration: none; transition: color var(--duration-fast); }
+a:hover { color: var(--accent-hover); }
+
+code, pre, kbd, samp { font-family: var(--font-mono); }
+
+/* Eyebrow / meta / button utility classes used across surfaces */
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: var(--type-eyebrow-size);
+  font-weight: var(--type-eyebrow-weight);
+  letter-spacing: var(--type-eyebrow-tracking);
+  text-transform: var(--type-eyebrow-case);
+  color: var(--accent);
+  margin: 0 0 0.5rem;
+}
+
+.meta {
+  font-family: var(--font-ui);
+  font-size: var(--type-meta-size);
+  color: var(--fg-muted);
+}
+
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.15rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--fg-heading);
+  font-family: var(--font-ui);
+  font-size: var(--type-button-size);
+  font-weight: var(--type-button-weight);
+  letter-spacing: var(--type-button-tracking);
+  text-transform: var(--type-button-case);
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+.btn-pill:hover {
+  background: var(--bg-card);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sway {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(0.4deg); }
+  75%  { transform: rotate(-0.4deg); }
+  100% { transform: rotate(0deg); }
+}
+.page-transition { animation: fadeUp var(--duration-slow) var(--ease-out) both; }

@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Initiative Tracker — Interactive Prototype</title>
+  <link rel="stylesheet" href="colors_and_type.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-wallpaper);
+      color: var(--fg);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: var(--bg-nav-warm);
+      border-bottom: 2px solid var(--border-warm);
+      padding: 1rem clamp(1.4rem, 3vw, 2.4rem);
+      box-shadow: var(--shadow-nav-warm);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .navbar-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .navbar-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .hamburger-btn {
+      background: transparent;
+      border: none;
+      color: var(--fg-heading);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: var(--radius-md);
+      transition: all 150ms ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+    }
+
+    .hamburger-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .navbar-brand {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--fg-heading);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .navbar-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    /* Sidebar Drawer */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 250ms ease;
+    }
+
+    .sidebar-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      background: var(--bg-card-warm);
+      border-right: 2px solid var(--border-warm);
+      box-shadow: var(--shadow-lg-warm);
+      z-index: 1200;
+      transform: translateX(-100%);
+      transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 2px solid var(--border-warm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--fg-heading);
+    }
+
+    .sidebar-close {
+      background: transparent;
+      border: none;
+      color: var(--fg-heading);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: var(--radius-md);
+      transition: all 150ms ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+    }
+
+    .sidebar-close:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 1rem 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1.5rem;
+      font-family: var(--font-ui);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--fg);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 150ms ease;
+      width: 100%;
+      text-align: left;
+    }
+
+    .sidebar-nav-item:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--accent);
+    }
+
+    .sidebar-nav-item.active {
+      background: var(--accent);
+      color: var(--bg-paper);
+    }
+
+    .sidebar-nav-icon {
+      font-size: 1.25rem;
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: var(--font-ui);
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius-pill);
+      border: none;
+      cursor: pointer;
+      transition: all 150ms ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-paper);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md-warm);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--fg-heading);
+      border: 2px solid var(--border-warm);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-surface-warm);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-nav {
+      background: transparent;
+      color: var(--text-menu-warm);
+      border: none;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+    }
+
+    .btn-nav:hover,
+    .btn-nav.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-menu-warm-strong);
+    }
+
+    /* Main content */
+    .main-content {
+      min-height: calc(100vh - 80px);
+      padding: clamp(1.4rem, 3vw, 2.4rem);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Round counter in navbar */
+    .round-counter {
+      background: var(--accent);
+      color: var(--bg-paper);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 80px;
+    }
+
+    .round-counter-label {
+      font-family: var(--font-ui);
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.9;
+    }
+
+    .round-counter-number {
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 3.5rem;
+    }
+
+    .timeline-spine {
+      position: absolute;
+      left: 1rem;
+      top: 0;
+      bottom: 0;
+      width: 14px;
+      background: linear-gradient(180deg, 
+        var(--accent) 0%, 
+        var(--accent-light) 40%,
+        var(--accent-light) 60%,
+        var(--accent) 100%
+      );
+      border-radius: 7px;
+      box-shadow: 
+        0 0 20px var(--accent-glow),
+        inset 0 2px 6px rgba(255, 255, 255, 0.25),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .timeline-section {
+      margin-bottom: 2rem;
+    }
+
+    .timeline-section.history {
+      opacity: 0.35;
+    }
+
+    .timeline-label {
+      font-family: var(--font-ui);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .timeline-label.center {
+      text-align: center;
+      font-size: 1.125rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Combatant Cards */
+    .combatant-card {
+      background: var(--bg-card-warm);
+      border: 2px solid var(--border-warm);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-md-warm);
+      transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .combatant-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg-warm);
+    }
+
+    .combatant-card.active {
+      background: var(--accent);
+      color: var(--bg-paper);
+      border: 4px solid var(--fg-heading);
+      padding: 3rem 2.5rem;
+      box-shadow: 
+        0 12px 32px var(--accent-shadow),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      margin-bottom: 1.5rem;
+    }
+
+    .combatant-card.active:hover {
+      transform: translateY(-3px);
+    }
+
+    .combatant-card-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .combatant-info {
+      flex: 1;
+    }
+
+    .combatant-name {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .combatant-card.active .combatant-name {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .combatant-stats {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 1rem;
+      opacity: 0.95;
+    }
+
+    .combatant-card.active .combatant-stats {
+      font-size: 1.75rem;
+      gap: 2rem;
+    }
+
+    .stat {
+      font-weight: 600;
+    }
+
+    .combatant-icon {
+      font-size: 2rem;
+      opacity: 0.9;
+    }
+
+    .combatant-card.active .combatant-icon {
+      font-size: 4rem;
+    }
+
+    .status-badges {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .combatant-card.active .status-badges {
+      margin-top: 1rem;
+      gap: 0.75rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--radius-pill);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+
+    .combatant-card.active .status-badge {
+      padding: 0.5rem 1.25rem;
+      font-size: 1.125rem;
+      background: var(--bg-paper);
+      color: var(--accent);
+      border-color: transparent;
+    }
+
+    /* Home screen */
+    .home-header {
+      text-align: center;
+      margin-bottom: 4rem;
+      padding-top: 2rem;
+    }
+
+    .home-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 3.5rem);
+      font-weight: 700;
+      color: var(--fg-heading);
+      margin-bottom: 1rem;
+    }
+
+    .home-subtitle {
+      font-size: 1.125rem;
+      color: var(--fg-muted);
+    }
+
+    .menu-grid {
+      display: grid;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .menu-card {
+      background: var(--bg-card-warm);
+      border: 2px solid var(--border-warm);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      cursor: pointer;
+      transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: var(--shadow-md-warm);
+    }
+
+    .menu-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg-warm);
+      border-color: var(--accent);
+    }
+
+    .menu-card.primary {
+      background: var(--accent);
+      color: var(--bg-paper);
+      border-color: var(--fg-heading);
+      border-width: 3px;
+    }
+
+    .menu-card-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .menu-card-title {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .menu-card-description {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .navbar-content {
+        flex-wrap: wrap;
+      }
+
+      .navbar-actions {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 0.75rem;
+      }
+
+      .timeline {
+        padding-left: 2.5rem;
+      }
+
+      .timeline-spine {
+        left: 0.5rem;
+        width: 10px;
+      }
+
+      .combatant-card.active {
+        padding: 2rem 1.5rem;
+      }
+
+      .combatant-card.active .combatant-name {
+        font-size: 2rem;
+      }
+
+      .combatant-card.active .combatant-stats {
+        font-size: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel">
+    const { useState } = React;
+    const { TweaksPanel, useTweaks, TweakSection, TweakColor } = window;
+
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "accentColor": "#1F8A5B"
+    }/*EDITMODE-END*/;
+
+    // Accent color presets
+    const ACCENT_COLORS = [
+      ['#9C7848', '#D4A574', 'rgba(156, 120, 72, 0.35)', 'rgba(156, 120, 72, 0.45)'], // Bronze (default)
+      ['#2A6FDB', '#5B94E8', 'rgba(42, 111, 219, 0.35)', 'rgba(42, 111, 219, 0.45)'], // Blue
+      ['#1F8A5B', '#4CAF7D', 'rgba(31, 138, 91, 0.35)', 'rgba(31, 138, 91, 0.45)'],   // Green
+      ['#D94444', '#E67373', 'rgba(217, 68, 68, 0.35)', 'rgba(217, 68, 68, 0.45)'],   // Red
+      ['#8B5CF6', '#A78BFA', 'rgba(139, 92, 246, 0.35)', 'rgba(139, 92, 246, 0.45)'], // Purple
+      ['#F59E0B', '#FBBF24', 'rgba(245, 158, 11, 0.35)', 'rgba(245, 158, 11, 0.45)'], // Amber
+    ];
+
+    function App() {
+      const [currentScreen, setCurrentScreen] = useState('home');
+      const [sidebarOpen, setSidebarOpen] = useState(false);
+      const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+      // Apply accent color to CSS custom properties
+      React.useEffect(() => {
+        const colorSet = ACCENT_COLORS.find(c => c[0] === tweaks.accentColor) || ACCENT_COLORS[0];
+        document.documentElement.style.setProperty('--accent', colorSet[0]);
+        document.documentElement.style.setProperty('--accent-light', colorSet[1]);
+        document.documentElement.style.setProperty('--accent-glow', colorSet[2]);
+        document.documentElement.style.setProperty('--accent-shadow', colorSet[3]);
+        document.documentElement.style.setProperty('--accent-hover', colorSet[1]);
+      }, [tweaks.accentColor]);
+
+      const handleNavigate = (screen) => {
+        setCurrentScreen(screen);
+        setSidebarOpen(false);
+      };
+
+      return (
+        <>
+          <Sidebar 
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            currentScreen={currentScreen}
+            onNavigate={handleNavigate}
+          />
+          
+          <Navbar 
+            currentScreen={currentScreen} 
+            onNavigate={handleNavigate}
+            onMenuClick={() => setSidebarOpen(true)}
+          />
+          
+          <div className="main-content">
+            {currentScreen === 'home' && <HomeScreen onNavigate={handleNavigate} />}
+            {currentScreen === 'combat' && <CombatScreen />}
+            {currentScreen === 'party' && <PartyScreen />}
+            {currentScreen === 'enemies' && <EnemiesScreen />}
+            {currentScreen === 'settings' && <SettingsScreen tweaks={tweaks} setTweak={setTweak} />}
+          </div>
+
+          <TweaksPanel>
+            <TweakSection title="Accent Color">
+              <TweakColor
+                id="accentColor"
+                title="Theme Color"
+                options={ACCENT_COLORS.map(c => c[0])}
+              />
+            </TweakSection>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    function Sidebar({ isOpen, onClose, currentScreen, onNavigate }) {
+      return (
+        <>
+          <div 
+            className={`sidebar-overlay ${isOpen ? 'open' : ''}`}
+            onClick={onClose}
+          />
+          <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+            <div className="sidebar-header">
+              <div className="sidebar-title">Menu</div>
+              <button className="sidebar-close" onClick={onClose}>
+                ‹
+              </button>
+            </div>
+            <nav className="sidebar-nav">
+              <button 
+                className={`sidebar-nav-item ${currentScreen === 'home' ? 'active' : ''}`}
+                onClick={() => onNavigate('home')}
+              >
+                <span className="sidebar-nav-icon">🏠</span>
+                Home
+              </button>
+              <button 
+                className={`sidebar-nav-item ${currentScreen === 'party' ? 'active' : ''}`}
+                onClick={() => onNavigate('party')}
+              >
+                <span className="sidebar-nav-icon">👥</span>
+                Party
+              </button>
+              <button 
+                className={`sidebar-nav-item ${currentScreen === 'enemies' ? 'active' : ''}`}
+                onClick={() => onNavigate('enemies')}
+              >
+                <span className="sidebar-nav-icon">🐉</span>
+                Enemies
+              </button>
+              <button 
+                className={`sidebar-nav-item ${currentScreen === 'settings' ? 'active' : ''}`}
+                onClick={() => onNavigate('settings')}
+              >
+                <span className="sidebar-nav-icon">⚙️</span>
+                Settings
+              </button>
+            </nav>
+          </div>
+        </>
+      );
+    }
+
+    function Navbar({ currentScreen, onNavigate, onMenuClick }) {
+      const isCombat = currentScreen === 'combat';
+
+      return (
+        <nav className="navbar">
+          <div className="navbar-content">
+            <div className="navbar-left">
+              <button className="hamburger-btn" onClick={onMenuClick}>
+                ☰
+              </button>
+              <div 
+                className="navbar-brand" 
+                onClick={() => onNavigate('home')}
+              >
+                Initiative Tracker
+              </div>
+            </div>
+
+            <div className="navbar-actions">
+              {isCombat && (
+                <>
+                  <div className="round-counter">
+                    <div className="round-counter-label">Round</div>
+                    <div className="round-counter-number">3</div>
+                  </div>
+                  <button className="btn btn-primary">Next Turn →</button>
+                  <button className="btn btn-secondary">+ Add</button>
+                  <button className="btn btn-secondary">End Combat</button>
+                </>
+              )}
+              {!isCombat && (
+                <button className="btn btn-primary" onClick={() => onNavigate('combat')}>
+                  Start Combat
+                </button>
+              )}
+            </div>
+          </div>
+        </nav>
+      );
+    }
+
+    function HomeScreen({ onNavigate }) {
+      return (
+        <div className="container">
+          <div className="home-header">
+            <h1 className="home-title">Initiative Tracker</h1>
+            <p className="home-subtitle">D&D Combat Management for Tabletop Play</p>
+          </div>
+
+          <div className="menu-grid">
+            <div className="menu-card primary" onClick={() => onNavigate('combat')}>
+              <div className="menu-card-icon">⚔️</div>
+              <div className="menu-card-title">Start Combat</div>
+              <div className="menu-card-description">Begin initiative tracking with your party</div>
+            </div>
+
+            <div className="menu-card" onClick={() => onNavigate('party')}>
+              <div className="menu-card-icon">👥</div>
+              <div className="menu-card-title">Manage Party</div>
+              <div className="menu-card-description">Add and edit player characters</div>
+            </div>
+
+            <div className="menu-card" onClick={() => onNavigate('enemies')}>
+              <div className="menu-card-icon">🐉</div>
+              <div className="menu-card-title">Enemy Library</div>
+              <div className="menu-card-description">Browse monsters, create encounters</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function CombatScreen() {
+      return (
+        <div className="container">
+          <div className="timeline">
+            <div className="timeline-spine"></div>
+
+            {/* History */}
+            <div className="timeline-section history">
+              <div className="combatant-card">
+                <div className="combatant-card-content">
+                  <div className="combatant-info">
+                    <div className="combatant-name">Goblin 2</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="combatant-card">
+                <div className="combatant-card-content">
+                  <div className="combatant-info">
+                    <div className="combatant-name">Theron</div>
+                    <div className="combatant-stats">
+                      <span className="stat">HP: 28/45</span>
+                      <span className="stat">AC: 16</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Turn */}
+            <div className="timeline-section active-section">
+              <div className="timeline-label center">★ CURRENT TURN ★</div>
+              <div className="combatant-card active">
+                <div className="combatant-card-content">
+                  <div className="combatant-info">
+                    <div className="combatant-name">Valdis</div>
+                    <div className="combatant-stats">
+                      <span className="stat">HP: 52/52</span>
+                      <span className="stat">AC: 18</span>
+                    </div>
+                    <div className="status-badges">
+                      <span className="status-badge">🔵 Blessed</span>
+                      <span className="status-badge">⚡ Hasted</span>
+                    </div>
+                  </div>
+                  <div className="combatant-icon">★</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Queue */}
+            <div className="timeline-section queue">
+              <div className="timeline-label">UP NEXT</div>
+              
+              <div className="combatant-card">
+                <div className="combatant-card-content">
+                  <div className="combatant-info">
+                    <div className="combatant-name">Goblin 1</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="combatant-card">
+                <div className="combatant-card-content">
+                  <div className="combatant-info">
+                    <div className="combatant-name">Kira</div>
+                    <div className="combatant-stats">
+                      <span className="stat">HP: 34/40</span>
+                      <span className="stat">AC: 14</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="combatant-card">
+                <div className="combatant-card-content">
+                  <div className="combatant-info">
+                    <div className="combatant-name">Bugbear</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="combatant-card">
+                <div className="combatant-card-content">
+                  <div className="combatant-info">
+                    <div className="combatant-name">Eldric</div>
+                    <div className="combatant-stats">
+                      <span className="stat">HP: 41/41</span>
+                      <span className="stat">AC: 15</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function PartyScreen() {
+      return (
+        <div className="container">
+          <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '1rem' }}>
+              Party Library
+            </h2>
+            <p style={{ color: 'var(--fg-muted)' }}>
+              Character management screen — add/edit player characters for combat
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    function EnemiesScreen() {
+      return (
+        <div className="container">
+          <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '1rem' }}>
+              Enemy Library
+            </h2>
+            <p style={{ color: 'var(--fg-muted)' }}>
+              Browse SRD monsters, create custom enemies, save encounter templates
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    function SettingsScreen({ tweaks, setTweak }) {
+      return (
+        <div className="container" style={{ maxWidth: '800px' }}>
+          <h2 style={{ 
+            fontFamily: 'var(--font-display)', 
+            fontSize: '2rem', 
+            marginBottom: '2rem',
+            textAlign: 'center'
+          }}>
+            Settings
+          </h2>
+          
+          <div style={{ 
+            background: 'var(--bg-card-warm)', 
+            border: '2px solid var(--border-warm)',
+            borderRadius: 'var(--radius-md)',
+            padding: '2rem',
+            marginBottom: '2rem',
+            boxShadow: 'var(--shadow-md-warm)'
+          }}>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', fontWeight: 600 }}>
+              Display Settings
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <SettingRow label="Dark Mode" description="Use dark theme for better projector visibility" />
+              <SettingRow label="Display Enemy HP" description="Show hit points for enemy combatants" />
+              <SettingRow label="Display Enemy AC" description="Show armor class for enemy combatants" />
+              <SettingRow label="Display Player HP" description="Show hit points for player characters" checked />
+              <SettingRow label="Display Player AC" description="Show armor class for player characters" checked />
+            </div>
+          </div>
+
+          <div style={{ 
+            background: 'var(--bg-card-warm)', 
+            border: '2px solid var(--border-warm)',
+            borderRadius: 'var(--radius-md)',
+            padding: '2rem',
+            boxShadow: 'var(--shadow-md-warm)'
+          }}>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', fontWeight: 600 }}>
+              Theme Color
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--fg-muted)', marginBottom: '1.5rem' }}>
+              Choose your accent color (also adjustable via Tweaks panel in toolbar)
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(60px, 1fr))', gap: '1rem' }}>
+              {ACCENT_COLORS.map(([color]) => (
+                <div
+                  key={color}
+                  onClick={() => setTweak('accentColor', color)}
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    background: color,
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    border: tweaks.accentColor === color ? '3px solid var(--fg-heading)' : '2px solid var(--border-warm)',
+                    boxShadow: 'var(--shadow-sm)',
+                    transition: 'all 150ms ease',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function SettingRow({ label, description, checked }) {
+      return (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1.5rem' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem' }}>{label}</div>
+            <div style={{ fontSize: '0.875rem', color: 'var(--fg-muted)' }}>{description}</div>
+          </div>
+          <div style={{
+            width: '52px',
+            height: '28px',
+            background: checked ? 'var(--accent)' : '#CAC2B8',
+            borderRadius: '999px',
+            position: 'relative',
+            cursor: 'pointer',
+          }}>
+            <div style={{
+              width: '20px',
+              height: '20px',
+              background: 'var(--bg-paper)',
+              borderRadius: '50%',
+              position: 'absolute',
+              top: '4px',
+              left: checked ? '28px' : '4px',
+              transition: 'left 0.2s ease',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            }} />
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
