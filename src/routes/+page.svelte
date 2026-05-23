@@ -5,7 +5,7 @@
 		>
 			Marching Order
 		</h1>
-		<p class="text-lg text-text-muted">D&D Combat Management for Tabletop Play</p>
+		<p class="text-lg text-text-muted">Fast initiative tracking for tabletop play</p>
 	</div>
 
 	<div class="grid gap-6">
@@ -25,9 +25,21 @@
 			style="box-shadow: var(--shadow-sm);"
 		>
 			<div class="mb-4 text-5xl">👥</div>
-			<div class="mb-2 font-display text-3xl font-bold text-text-heading">Manage Party</div>
+			<div class="mb-2 font-display text-3xl font-bold text-text-heading">Roster</div>
 			<div class="text-base text-text-primary opacity-90">
-				Add and edit player characters
+				Add player names and optional display details
+			</div>
+		</a>
+
+		<a
+			href="/idle"
+			class="group cursor-pointer rounded-md border-2 border-border bg-bg-card p-8 no-underline transition-all duration-200 hover:-translate-y-[3px] hover:border-[var(--accent)]"
+			style="box-shadow: var(--shadow-sm);"
+		>
+			<div class="mb-4 text-5xl">🖼️</div>
+			<div class="mb-2 font-display text-3xl font-bold text-text-heading">Slideshow</div>
+			<div class="text-base text-text-primary opacity-90">
+				Show the active roster between combats
 			</div>
 		</a>
 

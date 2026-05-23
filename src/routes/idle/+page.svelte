@@ -41,19 +41,24 @@
 					.slice(0, 2)
 			: ''
 	);
+
+	const showLevel = $derived(Boolean(member && member.level > 0));
+	const showAc = $derived(Boolean(member && member.ac > 0 && settings.current.showPlayerAc));
+	const showHp = $derived(Boolean(member && member.maxHp > 0 && settings.current.showPlayerHp));
+	const showPassivePerception = $derived(Boolean(member && member.passivePerception > 0));
 </script>
 
 <div class="flex min-h-[calc(100vh-120px)] items-center justify-center">
 	{#if party.length === 0}
 		<div class="text-center">
 			<div class="mb-4 text-5xl">🎲</div>
-			<p class="text-lg text-text-muted">No party members to display</p>
+			<p class="text-lg text-text-muted">No roster names to display</p>
 			<a
 				href="/party"
 				class="mt-4 inline-block font-semibold no-underline"
 				style="color: var(--accent);"
 			>
-				Add party members &rarr;
+				Add roster names &rarr;
 			</a>
 		</div>
 	{:else if member}
@@ -74,15 +79,22 @@
 				{member.name}
 			</h1>
 
-			<div class="flex justify-center gap-8 text-xl text-text-muted">
-				<span>Level {member.level}</span>
-				{#if settings.current.showPlayerAc}
-					<span>AC {member.ac}</span>
-				{/if}
-				{#if settings.current.showPlayerHp}
-					<span>HP {member.currentHp}/{member.maxHp}</span>
-				{/if}
-			</div>
+			{#if showLevel || showAc || showHp || showPassivePerception}
+				<div class="flex flex-wrap justify-center gap-8 text-xl text-text-muted">
+					{#if showLevel}
+						<span>Level {member.level}</span>
+					{/if}
+					{#if showAc}
+						<span>AC {member.ac}</span>
+					{/if}
+					{#if showHp}
+						<span>HP {member.currentHp}/{member.maxHp}</span>
+					{/if}
+					{#if showPassivePerception}
+						<span>PP {member.passivePerception}</span>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

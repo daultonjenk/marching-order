@@ -203,7 +203,7 @@
 				style="box-shadow: var(--shadow-sm);"
 			>
 				<h2 class="mb-4 font-display text-xl font-bold text-text-heading">
-					Combatants ({combatants.length})
+					Lineup ({combatants.length})
 				</h2>
 				<div class="flex flex-col gap-2">
 					{#each combatants as c, i}
@@ -347,7 +347,7 @@
 			<div class="rounded-md border-2 border-border bg-bg-card p-8 text-center"
 				style="box-shadow: var(--shadow-sm);">
 				<p class="mb-4 text-text-muted">
-					No saved party members or enemies yet. Quick add works for this fight, or save reusable entries first.
+					No saved roster names or enemies yet. Quick add works for this fight, or save reusable entries first.
 				</p>
 				<div class="flex justify-center gap-4">
 					<a
@@ -355,7 +355,7 @@
 						class="inline-flex rounded-pill border-none px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper no-underline"
 						style="background: var(--accent);"
 					>
-						Add Party Members
+						Add Roster Names
 					</a>
 					<a
 						href="/enemies"

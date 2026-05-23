@@ -10,9 +10,10 @@
 
 	const navItems = [
 		{ href: '/', label: 'Home', icon: '🏠' },
-		{ href: '/party', label: 'Party', icon: '👥' },
+		{ href: '/party', label: 'Roster', icon: '👥' },
 		{ href: '/enemies', label: 'Enemies', icon: '🐉' },
 		{ href: '/tracker', label: 'Combat', icon: '⚔️' },
+		{ href: '/idle', label: 'Slideshow', icon: '🖼️' },
 		{ href: '/settings', label: 'Settings', icon: '⚙️' }
 	];
 

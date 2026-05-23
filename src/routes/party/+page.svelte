@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { PartyMember } from '$lib/types';
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 	let party = $derived(data.party);
 	let editing = $state<PartyMember | null>(null);
 	let showForm = $state(false);
+	let showDisplayDetails = $state(false);
 
 	let formName = $state('');
 	let formAc = $state(10);
@@ -23,6 +23,7 @@
 		formPassivePerception = 10;
 		editing = null;
 		showForm = false;
+		showDisplayDetails = false;
 	}
 
 	function editMember(member: PartyMember) {
@@ -33,6 +34,17 @@
 		formLevel = member.level;
 		formPassivePerception = member.passivePerception;
 		showForm = true;
+		showDisplayDetails = false;
+	}
+
+	function toggleDisplayDetails() {
+		showDisplayDetails = !showDisplayDetails;
+		if (!showDisplayDetails) return;
+
+		if (formAc <= 0) formAc = 10;
+		if (formMaxHp <= 0) formMaxHp = 10;
+		if (formLevel <= 0) formLevel = 1;
+		if (formPassivePerception <= 0) formPassivePerception = 10;
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -46,9 +58,9 @@
 	<div class="mb-8 flex items-center justify-between">
 		<div>
 			<h1 class="font-display text-[clamp(2rem,4vw,2.5rem)] font-bold text-text-heading">
-				Party
+				Roster
 			</h1>
-			<p class="text-text-muted">Manage your player characters</p>
+			<p class="text-text-muted">Add names for combat. Display details are optional.</p>
 		</div>
 		{#if !showForm}
 			<button
@@ -56,7 +68,7 @@
 				class="cursor-pointer rounded-pill border-none px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5"
 				style="background: var(--accent); box-shadow: var(--shadow-sm);"
 			>
-				+ Add Member
+				+ Add Name
 			</button>
 		{/if}
 	</div>
@@ -68,7 +80,7 @@
 			style="box-shadow: var(--shadow-sm);"
 		>
 			<h2 class="mb-4 font-display text-xl font-bold text-text-heading">
-				{editing ? 'Edit' : 'Add'} Party Member
+				{editing ? 'Edit' : 'Add'} Roster Name
 			</h2>
 			<form
 				method="POST"
@@ -82,73 +94,98 @@
 				class="flex flex-col gap-4"
 			>
 				<input type="hidden" name="id" value={editing?.id ?? crypto.randomUUID()} />
-				<input type="hidden" name="currentHp" value={editing?.currentHp ?? formMaxHp} />
+				<input
+					type="hidden"
+					name="currentHp"
+					value={editing?.currentHp ?? (showDisplayDetails ? formMaxHp : 0)}
+				/>
+				{#if !showDisplayDetails}
+					<input type="hidden" name="ac" value={editing ? formAc : 0} />
+					<input type="hidden" name="maxHp" value={editing ? formMaxHp : 0} />
+					<input type="hidden" name="level" value={editing ? formLevel : 0} />
+					<input
+						type="hidden"
+						name="passivePerception"
+						value={editing ? formPassivePerception : 0}
+					/>
+				{/if}
 				<div>
 					<label for="name" class="mb-1 block text-sm font-semibold">Name</label>
-					<input
-						id="name"
-						name="name"
-						type="text"
-						bind:value={formName}
-						placeholder="Character name"
+						<input
+							id="name"
+							name="name"
+							type="text"
+							bind:value={formName}
+							placeholder="Name"
 						class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
 						autofocus
 					/>
 				</div>
-				<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-					<div>
-						<label for="ac" class="mb-1 block text-sm font-semibold">AC</label>
-						<input
-							id="ac"
-							name="ac"
-							type="number"
-							bind:value={formAc}
-							min="1"
-							class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
-						/>
+				<button
+					type="button"
+					onclick={toggleDisplayDetails}
+					class="w-fit cursor-pointer rounded-sm border border-border bg-bg-paper px-4 py-2 font-ui text-sm font-semibold uppercase tracking-wider text-text-heading transition-all hover:border-[var(--accent)] hover:text-[var(--accent)]"
+					aria-expanded={showDisplayDetails}
+				>
+					{showDisplayDetails ? 'Hide' : 'Add'} Display Details
+				</button>
+
+				{#if showDisplayDetails}
+					<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+						<div>
+							<label for="ac" class="mb-1 block text-sm font-semibold">AC</label>
+							<input
+								id="ac"
+								name="ac"
+								type="number"
+								bind:value={formAc}
+								min="1"
+								class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
+							/>
+						</div>
+						<div>
+							<label for="maxHp" class="mb-1 block text-sm font-semibold">Max HP</label>
+							<input
+								id="maxHp"
+								name="maxHp"
+								type="number"
+								bind:value={formMaxHp}
+								min="1"
+								class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
+							/>
+						</div>
+						<div>
+							<label for="level" class="mb-1 block text-sm font-semibold">Level</label>
+							<input
+								id="level"
+								name="level"
+								type="number"
+								bind:value={formLevel}
+								min="1"
+								max="20"
+								class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
+							/>
+						</div>
+						<div>
+							<label for="pp" class="mb-1 block text-sm font-semibold">Passive Perception</label>
+							<input
+								id="pp"
+								name="passivePerception"
+								type="number"
+								bind:value={formPassivePerception}
+								class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
+							/>
+						</div>
 					</div>
-					<div>
-						<label for="maxHp" class="mb-1 block text-sm font-semibold">Max HP</label>
-						<input
-							id="maxHp"
-							name="maxHp"
-							type="number"
-							bind:value={formMaxHp}
-							min="1"
-							class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
-						/>
-					</div>
-					<div>
-						<label for="level" class="mb-1 block text-sm font-semibold">Level</label>
-						<input
-							id="level"
-							name="level"
-							type="number"
-							bind:value={formLevel}
-							min="1"
-							max="20"
-							class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
-						/>
-					</div>
-					<div>
-						<label for="pp" class="mb-1 block text-sm font-semibold">Passive Perception</label>
-						<input
-							id="pp"
-							name="passivePerception"
-							type="number"
-							bind:value={formPassivePerception}
-							class="w-full rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
-						/>
-					</div>
-				</div>
+				{/if}
 				<div class="flex gap-3">
 					<button
 						type="submit"
-						class="cursor-pointer rounded-pill border-none px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
-						style="background: var(--accent);"
-					>
-						{editing ? 'Save Changes' : 'Add to Party'}
-					</button>
+							class="cursor-pointer rounded-pill border-none px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
+							style="background: var(--accent);"
+						>
+							{editing ? 'Save Changes' : 'Add to Roster'}
+						</button>
 					<button
 						type="button"
 						onclick={resetForm}
@@ -168,13 +205,13 @@
 			style="box-shadow: var(--shadow-sm);"
 		>
 			<div class="mb-4 text-5xl">👥</div>
-			<p class="mb-4 text-lg text-text-muted">No party members yet</p>
+			<p class="mb-4 text-lg text-text-muted">No roster names yet</p>
 			<button
 				onclick={() => (showForm = true)}
 				class="cursor-pointer rounded-pill border-none px-6 py-3 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
 				style="background: var(--accent);"
 			>
-				Add Your First Character
+				Add First Name
 			</button>
 		</div>
 	{:else}
@@ -189,12 +226,7 @@
 							<div class="mb-1 font-display text-2xl font-bold text-text-heading">
 								{member.name}
 							</div>
-							<div class="flex flex-wrap gap-4 text-sm text-text-muted">
-								<span>Level {member.level}</span>
-								<span>AC {member.ac}</span>
-								<span>HP {member.currentHp}/{member.maxHp}</span>
-								<span>PP {member.passivePerception}</span>
-							</div>
+							<p class="text-sm text-text-muted">Ready for combat setup and slideshow.</p>
 						</div>
 						<div class="flex gap-2">
 							<button

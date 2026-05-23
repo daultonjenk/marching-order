@@ -190,18 +190,48 @@ test('hides enemy stats on the combat setup list when enemy stat display is disa
 	await expect(setupEnemy).not.toContainText('AC: 18');
 });
 
+test('keeps name-only roster entries free of fake stats', async ({ page, request }) => {
+	const playerName = `Name Only ${Date.now().toString(36)}`;
+
+	await request.post('/api/settings', {
+		data: {
+			...defaultSettings,
+			showPlayerHp: true,
+			showPlayerAc: true
+		}
+	});
+
+	await page.goto('/party');
+	await waitForApp(page);
+	await page.getByRole('button', { name: /\+ add name/i }).click();
+	await page.getByLabel('Name').fill(playerName);
+	await page.getByRole('button', { name: /add to roster/i }).click();
+	await expect(page.getByText(playerName)).toBeVisible();
+
+	await page.goto('/tracker');
+	await waitForApp(page);
+
+	const setupPlayer = page.getByTestId('setup-combatant').filter({ hasText: playerName });
+	await expect(setupPlayer).toBeVisible();
+	await expect(setupPlayer.getByTestId('setup-combatant-hp')).toHaveCount(0);
+	await expect(setupPlayer.getByTestId('setup-combatant-ac')).toHaveCount(0);
+	await expect(setupPlayer).not.toContainText('HP: 0');
+	await expect(setupPlayer).not.toContainText('AC: 0');
+});
+
 test('respects player HP and AC settings on setup and tracker cards', async ({ page, request }) => {
 	const playerName = `Private Hero ${Date.now().toString(36)}`;
 
 	await page.goto('/party');
 	await waitForApp(page);
-	await page.getByRole('button', { name: /\+ add member/i }).click();
+	await page.getByRole('button', { name: /\+ add name/i }).click();
 	await page.getByLabel('Name').fill(playerName);
+	await page.getByRole('button', { name: /add display details/i }).click();
 	await page.getByLabel('AC').fill('19');
 	await page.getByLabel('Max HP').fill('42');
 	await page.getByLabel('Level').fill('5');
 	await page.getByLabel('Passive Perception').fill('14');
-	await page.getByRole('button', { name: /add to party/i }).click();
+	await page.getByRole('button', { name: /add to roster/i }).click();
 	await expect(page.getByText(playerName)).toBeVisible();
 
 	await page.goto('/tracker');
