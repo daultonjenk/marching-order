@@ -70,7 +70,7 @@
 		>
 			<!-- Portrait placeholder -->
 			<div
-				class="mx-auto mb-8 flex h-40 w-40 items-center justify-center rounded-full border-4 border-text-heading font-display text-5xl font-bold text-bg-paper"
+				class="mx-auto mb-8 flex h-40 w-40 items-center justify-center rounded-full border-4 border-text-heading font-display text-5xl font-bold text-text-nav"
 				style="background: var(--accent);"
 			>
 				{initials}

@@ -365,7 +365,7 @@
 				<button
 					onclick={proceedToInitiative}
 					disabled={combatants.length < 2}
-					class="min-h-14 w-full cursor-pointer rounded-sm border-none px-10 py-3 font-ui text-lg font-bold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 md:w-auto"
+					class="min-h-14 w-full cursor-pointer rounded-sm border-none px-10 py-3 font-ui text-lg font-bold uppercase tracking-wider text-text-nav transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 md:w-auto"
 					style="background: var(--accent); box-shadow: var(--shadow-sm);"
 				>
 					Roll Initiative &rarr;
@@ -741,7 +741,7 @@
 							<button
 								type="submit"
 								disabled={!playerNameInput.trim()}
-								class="min-h-11 cursor-pointer rounded-sm border-none px-6 py-3 font-ui text-sm font-bold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
+								class="min-h-11 cursor-pointer rounded-sm border-none px-6 py-3 font-ui text-sm font-bold uppercase tracking-wider text-text-nav transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
 								style="background: var(--accent); box-shadow: var(--shadow-sm);"
 							>
 								Confirm
@@ -823,7 +823,7 @@
 							<button
 								type="submit"
 								disabled={enemyDialogMode === 'enemy' ? !enemyNameInput.trim() : !selectedEncounter}
-								class="min-h-11 cursor-pointer rounded-sm border-none px-6 py-3 font-ui text-sm font-bold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
+								class="min-h-11 cursor-pointer rounded-sm border-none px-6 py-3 font-ui text-sm font-bold uppercase tracking-wider text-text-nav transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
 								style="background: var(--accent); box-shadow: var(--shadow-sm);"
 							>
 								{enemyDialogMode === 'enemy' ? 'Confirm' : 'Add Encounter'}
@@ -846,7 +846,7 @@
 		</div>
 
 		<div
-			class="mx-auto max-w-[500px] rounded-md border-4 border-text-heading p-10 text-center text-bg-paper"
+			class="mx-auto max-w-[500px] rounded-md border-4 border-text-heading p-10 text-center text-text-nav"
 			style="background: {combatants[currentInitiativeIndex].markerColor}; box-shadow: 0 12px 32px {combatants[currentInitiativeIndex].markerColor}73;"
 		>
 			<div class="mb-2 font-ui text-sm font-bold uppercase tracking-wider opacity-80">
@@ -861,13 +861,13 @@
 				bind:value={initiativeInput}
 				onkeydown={handleInitiativeKeydown}
 				placeholder="Initiative roll"
-				class="mb-4 w-full max-w-[200px] rounded-md border-2 border-white/30 bg-white/20 p-4 text-center text-3xl font-bold text-bg-paper placeholder:text-white/50 focus:border-white focus:outline-none"
+				class="mb-4 w-full max-w-[200px] rounded-md border-2 border-white/30 bg-white/20 p-4 text-center text-3xl font-bold text-text-nav placeholder:text-white/50 focus:border-white focus:outline-none"
 				autofocus
 			/>
 			<div>
 				<button
 					onclick={submitInitiative}
-					class="cursor-pointer rounded-pill border-2 border-white/30 bg-white/20 px-8 py-3 font-ui text-sm font-bold uppercase tracking-wider text-bg-paper transition-all hover:bg-white/30"
+					class="cursor-pointer rounded-pill border-2 border-white/30 bg-white/20 px-8 py-3 font-ui text-sm font-bold uppercase tracking-wider text-text-nav transition-all hover:bg-white/30"
 				>
 					{currentInitiativeIndex < combatants.length - 1 ? 'Next' : 'Begin Combat!'}
 				</button>

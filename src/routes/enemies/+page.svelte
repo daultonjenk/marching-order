@@ -106,7 +106,7 @@
 			{#if !showEnemyForm}
 				<button
 					onclick={() => (showEnemyForm = true)}
-					class="cursor-pointer rounded-pill border-none px-5 py-2 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
+					class="cursor-pointer rounded-pill border-none px-5 py-2 font-ui text-sm font-semibold uppercase tracking-wider text-text-nav"
 					style="background: var(--accent);"
 				>
 					+ Add Enemy
@@ -183,7 +183,7 @@
 					<div class="flex gap-3">
 						<button
 							type="submit"
-							class="cursor-pointer rounded-pill border-none px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
+							class="cursor-pointer rounded-pill border-none px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-text-nav"
 							style="background: var(--accent);"
 						>
 							{editingEnemy ? 'Save Changes' : 'Add Enemy'}
@@ -269,7 +269,7 @@
 			{#if !showEncounterForm && enemies.length > 0}
 				<button
 					onclick={() => (showEncounterForm = true)}
-					class="cursor-pointer rounded-pill border-none px-5 py-2 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
+					class="cursor-pointer rounded-pill border-none px-5 py-2 font-ui text-sm font-semibold uppercase tracking-wider text-text-nav"
 					style="background: var(--accent);"
 				>
 					+ New Encounter
@@ -382,7 +382,7 @@
 					<div class="flex gap-3">
 						<button
 							type="submit"
-							class="cursor-pointer rounded-pill border-none px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
+							class="cursor-pointer rounded-pill border-none px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-text-nav"
 							style="background: var(--accent);"
 						>
 							{editingEncounter ? 'Save Changes' : 'Create Encounter'}

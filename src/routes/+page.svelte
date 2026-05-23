@@ -184,7 +184,7 @@
 	<div class="combat-shell mx-auto flex max-w-[1200px] flex-col overflow-hidden">
 		<div class="flex flex-wrap items-center justify-end gap-3">
 			<div
-				class="mr-auto flex min-h-11 min-w-[82px] flex-col items-center justify-center rounded-sm px-4 py-2 text-bg-paper"
+				class="mr-auto flex min-h-11 min-w-[82px] flex-col items-center justify-center rounded-sm px-4 py-2 text-text-nav"
 				style="background: var(--accent); box-shadow: var(--shadow-sm);"
 			>
 				<div class="font-ui text-[0.625rem] uppercase tracking-wider opacity-90">Round</div>
@@ -193,7 +193,7 @@
 
 			<button
 				onclick={nextTurn}
-				class="min-h-11 cursor-pointer rounded-sm border-none px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5"
+				class="min-h-11 cursor-pointer rounded-sm border-none px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-text-nav transition-all duration-150 hover:-translate-y-0.5"
 				style="background: var(--accent); box-shadow: var(--shadow-sm);"
 			>
 				Next Turn &rarr;

@@ -3,7 +3,7 @@
 @theme {
 	/* Warm palette */
 	--color-bg-primary: #F0ECE5;
-	--color-bg-nav: #2F2922;
+	--color-bg-nav: #3E3E3E;
 	--color-bg-surface: #E8E2D8;
 	--color-bg-paper: #F9F5F0;
 	--color-bg-card: #F0EAE2;
@@ -44,6 +44,7 @@
 	--accent-light: #6E6E6E;
 	--accent-glow: rgba(62, 62, 62, 0.35);
 	--accent-shadow: rgba(62, 62, 62, 0.45);
+	--accent-text: #F9F5F0;
 	--nav-hover-bg: rgba(249, 245, 240, 0.12);
 	--nav-border: rgba(249, 245, 240, 0.18);
 

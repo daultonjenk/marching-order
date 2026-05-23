@@ -65,7 +65,7 @@
 		{#if !showForm}
 			<button
 				onclick={() => (showForm = true)}
-				class="cursor-pointer rounded-pill border-none px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5"
+				class="cursor-pointer rounded-pill border-none px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-text-nav transition-all duration-150 hover:-translate-y-0.5"
 				style="background: var(--accent); box-shadow: var(--shadow-sm);"
 			>
 				+ Add Name
@@ -181,7 +181,7 @@
 				<div class="flex gap-3">
 					<button
 						type="submit"
-							class="cursor-pointer rounded-pill border-none px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
+							class="cursor-pointer rounded-pill border-none px-6 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-text-nav"
 							style="background: var(--accent);"
 						>
 							{editing ? 'Save Changes' : 'Add to Roster'}
@@ -208,7 +208,7 @@
 			<p class="mb-4 text-lg text-text-muted">No roster names yet</p>
 			<button
 				onclick={() => (showForm = true)}
-				class="cursor-pointer rounded-pill border-none px-6 py-3 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper"
+				class="cursor-pointer rounded-pill border-none px-6 py-3 font-ui text-sm font-semibold uppercase tracking-wider text-text-nav"
 				style="background: var(--accent);"
 			>
 				Add First Name

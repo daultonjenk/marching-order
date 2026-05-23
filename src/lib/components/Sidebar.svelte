@@ -60,7 +60,7 @@
 				href={item.href}
 				onclick={onClose}
 				class="flex w-full items-center gap-3 border-none px-6 py-3.5 text-left font-ui text-[0.9375rem] font-semibold uppercase tracking-wider no-underline transition-all duration-150 hover:bg-black/5"
-				class:text-bg-paper={page.url.pathname === item.href}
+				class:text-text-nav={page.url.pathname === item.href}
 				class:text-text-primary={page.url.pathname !== item.href}
 				style={page.url.pathname === item.href ? `background: var(--accent);` : ''}
 			>
