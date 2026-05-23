@@ -1,5 +1,5 @@
 import type { AppSettings } from './types';
-import { DEFAULT_SETTINGS, ACCENT_COLORS } from './constants';
+import { DEFAULT_SETTINGS } from './constants';
 
 class SettingsState {
 	current = $state<AppSettings>({ ...DEFAULT_SETTINGS });
@@ -23,19 +23,13 @@ class SettingsState {
 
 	private applyAppearance() {
 		if (typeof document === 'undefined') return;
-		const color = ACCENT_COLORS.find((c) => c.value === this.current.accentColor) ?? {
-			value: this.current.accentColor,
-			light: this.current.accentColor,
-			glow: `${this.current.accentColor}59`,
-			shadow: `${this.current.accentColor}73`
-		};
 		const root = document.documentElement;
 		root.dataset.theme = this.current.darkMode ? 'dark' : 'light';
 		root.dataset.wallpaper = this.current.showWallpaper ? 'on' : 'off';
-		root.style.setProperty('--accent', color.value);
-		root.style.setProperty('--accent-light', color.light);
-		root.style.setProperty('--accent-glow', color.glow);
-		root.style.setProperty('--accent-shadow', color.shadow);
+		root.style.setProperty('--accent', '#3E3E3E');
+		root.style.setProperty('--accent-light', '#6E6E6E');
+		root.style.setProperty('--accent-glow', 'rgba(62, 62, 62, 0.35)');
+		root.style.setProperty('--accent-shadow', 'rgba(62, 62, 62, 0.45)');
 	}
 }
 

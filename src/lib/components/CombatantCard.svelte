@@ -18,7 +18,7 @@
 
 	const showExactHp = $derived(
 		combatant.maxHp > 0 && combatant.type === 'player'
-			? settings.current.showPlayerHp
+			? false
 			: combatant.maxHp > 0 &&
 					settings.current.showEnemyHp &&
 					settings.current.enemyHpFormat === 'exact'

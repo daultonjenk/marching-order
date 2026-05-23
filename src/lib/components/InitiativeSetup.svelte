@@ -68,7 +68,7 @@
 	function showExactHp(combatant: SetupCombatant) {
 		if (combatant.maxHp <= 0) return false;
 		return combatant.type === 'player'
-			? settings.current.showPlayerHp
+			? false
 			: settings.current.showEnemyHp && settings.current.enemyHpFormat === 'exact';
 	}
 

@@ -3,7 +3,7 @@
 @theme {
 	/* Warm palette */
 	--color-bg-primary: #F0ECE5;
-	--color-bg-nav: #2F2922;
+	--color-bg-nav: #3E3E3E;
 	--color-bg-surface: #E8E2D8;
 	--color-bg-paper: #F9F5F0;
 	--color-bg-card: #F0EAE2;
@@ -16,9 +16,9 @@
 
 	--color-border: #CAC2B8;
 
-	--color-accent: #9C7848;
-	--color-accent-light: #D4A574;
-	--color-accent-hover: #7C5C30;
+	--color-accent: #3E3E3E;
+	--color-accent-light: #6E6E6E;
+	--color-accent-hover: #2A2A2A;
 
 	/* Fonts */
 	--font-display: 'Lora', Georgia, serif;
@@ -40,10 +40,10 @@
 
 /* Dynamic accent color properties (set via JS) */
 :root {
-	--accent: #9C7848;
-	--accent-light: #D4A574;
-	--accent-glow: rgba(156, 120, 72, 0.35);
-	--accent-shadow: rgba(156, 120, 72, 0.45);
+	--accent: #3E3E3E;
+	--accent-light: #6E6E6E;
+	--accent-glow: rgba(62, 62, 62, 0.35);
+	--accent-shadow: rgba(62, 62, 62, 0.45);
 	--nav-hover-bg: rgba(249, 245, 240, 0.12);
 	--nav-border: rgba(249, 245, 240, 0.18);
 
@@ -53,7 +53,7 @@
 
 :root[data-theme='dark'] {
 	--color-bg-primary: #27231F;
-	--color-bg-nav: #17130F;
+	--color-bg-nav: #3E3E3E;
 	--color-bg-surface: #332D27;
 	--color-bg-paper: #3B342E;
 	--color-bg-card: #342E28;

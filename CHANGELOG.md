@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Accent color is now fixed to a neutral charcoal (`#3E3E3E`) — per-session and per-settings color customization has been removed.
+- Navigation bar color updated to charcoal (`#3E3E3E`) in both light and dark mode.
+
+### Removed
+
+- "Show Player HP" display toggle — player hit points are no longer shown on the tracker or idle screen.
+- "HP Reset on New Combat" setting from the Combat section.
+- Theme Color selector from the Settings page.
+- Accent color picker from the combat Tweaks panel.
+
+### Changed
+
 - Combat mode now keeps the current turn locked inside the visible viewport while history and queue entries stay constrained around it.
 - Combatant corner markers now use balanced triangular corner pockets instead of long narrow wedges.
 - Active combatant cards now use theme-aware colors so names remain readable in dark mode.

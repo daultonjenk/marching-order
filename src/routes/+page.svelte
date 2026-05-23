@@ -5,7 +5,6 @@
 	import type { Combatant, CombatState } from '$lib/types';
 	import CombatantCard from '$lib/components/CombatantCard.svelte';
 	import InitiativeSetup from '$lib/components/InitiativeSetup.svelte';
-	import { ACCENT_COLORS } from '$lib/constants';
 	import { settings } from '$lib/stores.svelte';
 	import type { PageData } from './$types';
 
@@ -225,27 +224,6 @@
 					class="absolute right-0 z-30 mt-2 w-56 rounded-sm border-2 border-border bg-bg-card p-4"
 					style="box-shadow: var(--shadow-md);"
 				>
-					<label class="mb-4 flex items-center justify-between gap-3 text-sm font-semibold text-text-heading">
-						Accent
-						<input
-							type="color"
-							value={settings.current.accentColor}
-							oninput={(event) => settings.update({ accentColor: event.currentTarget.value })}
-							class="h-10 w-12 cursor-pointer rounded-sm border border-border bg-bg-paper"
-						/>
-					</label>
-					<div class="mb-4 flex flex-wrap gap-2">
-						{#each ACCENT_COLORS as color}
-							<button
-								type="button"
-								onclick={() => settings.update({ accentColor: color.value })}
-								class="h-8 w-8 cursor-pointer rounded-sm border-2 border-border"
-								class:border-text-heading={settings.current.accentColor === color.value}
-								style="background: {color.value};"
-								aria-label="Use {color.label} accent"
-							></button>
-						{/each}
-					</div>
 					<label class="mb-4 block text-sm font-semibold text-text-heading">
 						<span class="mb-2 flex justify-between gap-3">
 							Corner size

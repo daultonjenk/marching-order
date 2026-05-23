@@ -71,7 +71,6 @@ export interface TurnHistoryEntry {
 export interface AppSettings {
 	darkMode: boolean;
 	showWallpaper: boolean;
-	showPlayerHp: boolean;
 	showPlayerAc: boolean;
 	showEnemyHp: boolean;
 	showEnemyAc: boolean;
@@ -79,6 +78,4 @@ export interface AppSettings {
 	idleSlideDuration: number;
 	idleTransitionStyle: 'fade' | 'slide';
 	autoRollEnemyInitiative: boolean;
-	hpResetBehavior: 'reset' | 'preserve';
-	accentColor: string;
 }
