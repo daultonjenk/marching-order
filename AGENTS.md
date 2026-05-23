@@ -73,6 +73,14 @@ The commit contains the following structural elements, to communicate intent to 
 
 Additional types are not mandated by the Conventional Commits specification, and have no implicit effect in Semantic Versioning (unless they include a BREAKING CHANGE). A scope may be provided to a commit’s type, to provide additional contextual information and is contained within parenthesis, e.g., feat(parser): add ability to parse arrays.
 
+## Changelog
+
+This project maintains a `CHANGELOG.md` following [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Update it with every change:
+
+- Add entries under `## [Unreleased]` using the appropriate subsection: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, or `Security`.
+- Write entries from the user's perspective — describe what changed, not how the code changed internally.
+- When a version is released, rename `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD` and add a fresh empty `[Unreleased]` section above it.
+
 ## Working Style
 
 - Ask before assuming if something seems ambiguous or could be interpreted multiple ways.
