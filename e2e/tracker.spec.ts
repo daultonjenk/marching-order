@@ -85,6 +85,7 @@ test.beforeEach(async ({ request }) => {
 test('lets DMs quick-add statless combatants during setup', async ({ page, request }) => {
 	const quickPlayer = `Quick Hero ${Date.now().toString(36)}`;
 	const quickEnemy = `Quick Foe ${Date.now().toString(36)}`;
+	const rosterPlayer = `Roster Hero ${Date.now().toString(36)}`;
 
 	await request.post('/api/settings', {
 		data: {
@@ -97,6 +98,13 @@ test('lets DMs quick-add statless combatants during setup', async ({ page, reque
 		}
 	});
 
+	await page.goto('/party');
+	await waitForApp(page);
+	await page.getByRole('button', { name: /\+ add name/i }).click();
+	await page.getByLabel('Name').fill(rosterPlayer);
+	await page.getByRole('button', { name: /add to roster/i }).click();
+	await expect(page.getByText(rosterPlayer)).toBeVisible();
+
 	await page.goto('/tracker');
 	await waitForApp(page);
 
@@ -105,18 +113,27 @@ test('lets DMs quick-add statless combatants during setup', async ({ page, reque
 		await preloadedCombatants.first().getByRole('button', { name: /remove/i }).click();
 	}
 
-	const quickAdd = page.getByTestId('quick-add-panel');
-	await expect(quickAdd).toBeVisible();
+	const playerColumn = page.getByTestId('players-setup-column');
+	const enemyColumn = page.getByTestId('enemies-setup-column');
+	await expect(playerColumn).toBeVisible();
+	await expect(enemyColumn).toBeVisible();
 
-	await quickAdd.getByTestId('quick-combatant-name').fill(quickPlayer);
-	await quickAdd.getByRole('button', { name: /add to lineup/i }).click();
-	await quickAdd.getByRole('button', { name: /^enemy$/i }).click();
-	await quickAdd.getByTestId('quick-combatant-name').fill(quickEnemy);
-	await quickAdd.getByRole('button', { name: /add to lineup/i }).click();
+	await playerColumn.getByTestId('open-player-add').click();
+	await page.getByTestId('player-combatant-name').fill(quickPlayer);
+	await page.getByRole('button', { name: /confirm/i }).click();
+	await playerColumn.getByTestId('open-player-add').click();
+	await page.getByTestId('player-combatant-name').fill(rosterPlayer);
+	await page.getByRole('button', { name: /confirm/i }).click();
+
+	await enemyColumn.getByTestId('open-enemy-add').click();
+	await page.getByTestId('enemy-combatant-name').fill(quickEnemy);
+	await page.getByRole('button', { name: /confirm/i }).click();
 
 	const setupPlayer = page.getByTestId('setup-combatant').filter({ hasText: quickPlayer });
+	const setupRosterPlayer = page.getByTestId('setup-combatant').filter({ hasText: rosterPlayer });
 	const setupEnemy = page.getByTestId('setup-combatant').filter({ hasText: quickEnemy });
 	await expect(setupPlayer).toBeVisible();
+	await expect(setupRosterPlayer).toBeVisible();
 	await expect(setupEnemy).toBeVisible();
 	await expect(setupPlayer.getByTestId('setup-combatant-hp')).toHaveCount(0);
 	await expect(setupPlayer.getByTestId('setup-combatant-ac')).toHaveCount(0);
@@ -127,6 +144,8 @@ test('lets DMs quick-add statless combatants during setup', async ({ page, reque
 	await page.getByPlaceholder('Initiative roll').fill('20');
 	await page.getByRole('button', { name: /next/i }).click();
 	await page.getByPlaceholder('Initiative roll').fill('10');
+	await page.getByRole('button', { name: /next/i }).click();
+	await page.getByPlaceholder('Initiative roll').fill('5');
 	await page.getByRole('button', { name: /begin combat/i }).click();
 
 	const activeCombatant = page.getByTestId('active-combatant-card');
@@ -179,7 +198,9 @@ test('hides enemy stats on the combat setup list when enemy stat display is disa
 
 	await page.goto('/tracker');
 	await waitForApp(page);
-	await page.getByRole('button', { name: `+ ${enemyName}` }).click();
+	await page.getByTestId('enemies-setup-column').getByTestId('open-enemy-add').click();
+	await page.getByTestId('enemy-combatant-name').fill(enemyName);
+	await page.getByRole('button', { name: /confirm/i }).click();
 
 	const setupEnemy = page.getByTestId('setup-combatant').filter({ hasText: enemyName });
 	await expect(setupEnemy).toBeVisible();

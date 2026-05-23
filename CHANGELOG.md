@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Combat setup now uses separate player and enemy columns with focused add dialogs and stable lineups.
 - Party management is now framed as a name-first roster, with character details tucked behind optional display details.
 - Roster profile fields are now truly optional instead of using placeholder stat values.
 - The home and menu navigation now surface the non-combat slideshow as a first-class table display mode.
