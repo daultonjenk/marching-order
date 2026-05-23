@@ -26,10 +26,17 @@ class SettingsState {
 		const root = document.documentElement;
 		root.dataset.theme = this.current.darkMode ? 'dark' : 'light';
 		root.dataset.wallpaper = this.current.showWallpaper ? 'on' : 'off';
-		root.style.setProperty('--accent', '#3E3E3E');
-		root.style.setProperty('--accent-light', '#6E6E6E');
-		root.style.setProperty('--accent-glow', 'rgba(62, 62, 62, 0.35)');
-		root.style.setProperty('--accent-shadow', 'rgba(62, 62, 62, 0.45)');
+		if (this.current.darkMode) {
+			root.style.setProperty('--accent', '#9C7848');
+			root.style.setProperty('--accent-light', '#D4A574');
+			root.style.setProperty('--accent-glow', 'rgba(156, 120, 72, 0.35)');
+			root.style.setProperty('--accent-shadow', 'rgba(156, 120, 72, 0.45)');
+		} else {
+			root.style.setProperty('--accent', '#3E3E3E');
+			root.style.setProperty('--accent-light', '#6E6E6E');
+			root.style.setProperty('--accent-glow', 'rgba(62, 62, 62, 0.35)');
+			root.style.setProperty('--accent-shadow', 'rgba(62, 62, 62, 0.45)');
+		}
 	}
 }
 

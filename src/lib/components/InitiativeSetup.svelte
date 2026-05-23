@@ -861,7 +861,7 @@
 				bind:value={initiativeInput}
 				onkeydown={handleInitiativeKeydown}
 				placeholder="Initiative roll"
-				class="mb-4 w-full max-w-[200px] rounded-md border-2 border-white/30 bg-white/20 p-4 text-center text-3xl font-bold text-text-nav placeholder:text-white/50 focus:border-white focus:outline-none"
+				class="mb-4 w-full max-w-[200px] rounded-md border-2 border-white/30 bg-white/20 p-4 text-center text-lg font-bold text-text-nav placeholder:text-white/50 focus:border-white focus:outline-none"
 				autofocus
 			/>
 			<div>
