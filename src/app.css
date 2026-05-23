@@ -89,10 +89,32 @@ html {
 	overscroll-behavior-y: none;
 }
 
-/* Force light-mode rendering for native browser popups (datalist, select dropdowns).
-   Without this, OS dark mode hijacks the dropdown colors and makes text unreadable. */
-input, select, textarea {
+/* Keep native browser popups (datalist, select dropdowns) aligned with the app theme. */
+input,
+select,
+textarea {
 	color-scheme: light;
+}
+
+:root[data-theme='dark'] input,
+:root[data-theme='dark'] select,
+:root[data-theme='dark'] textarea {
+	color-scheme: dark;
+}
+
+option {
+	background-color: var(--color-bg-paper);
+	color: var(--color-text-heading);
+}
+
+.native-picker-overlay {
+	color: transparent;
+	background-color: transparent;
+}
+
+.native-picker-overlay option {
+	background-color: var(--color-bg-paper);
+	color: var(--color-text-heading);
 }
 
 body {

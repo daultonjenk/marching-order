@@ -12,8 +12,8 @@
 
 	let combatState = $state<CombatState | null>(untrack(() => data.combatState));
 	let phase = $state<'setup' | 'combat'>(untrack(() => (data.combatState ? 'combat' : 'setup')));
-	let cornerSizePercent = $state(24);
-	let transitionDuration = $state(440);
+	const cornerSizePercent = 25;
+	const transitionDuration = 780;
 	let scrollContainer = $state<HTMLElement | null>(null);
 	let activeZoneEl = $state<HTMLElement | null>(null);
 	let flyY = $state(28);
@@ -213,47 +213,6 @@
 			>
 				End Combat
 			</button>
-
-			<details class="relative">
-				<summary
-					class="flex min-h-11 cursor-pointer list-none items-center rounded-sm border-2 border-border bg-bg-paper px-4 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-text-heading transition-all duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)]"
-				>
-					Tweaks
-				</summary>
-				<div
-					class="absolute right-0 z-30 mt-2 w-56 rounded-sm border-2 border-border bg-bg-card p-4"
-					style="box-shadow: var(--shadow-md);"
-				>
-					<label class="mb-4 block text-sm font-semibold text-text-heading">
-						<span class="mb-2 flex justify-between gap-3">
-							Corner size
-							<span>{cornerSizePercent}</span>
-						</span>
-						<input
-							type="range"
-							min="18"
-							max="30"
-							step="1"
-							bind:value={cornerSizePercent}
-							class="w-full accent-[var(--accent)]"
-						/>
-					</label>
-					<label class="block text-sm font-semibold text-text-heading">
-						<span class="mb-2 flex justify-between gap-3">
-							Turn transition
-							<span>{transitionDuration}ms</span>
-						</span>
-						<input
-							type="range"
-							min="80"
-							max="900"
-							step="20"
-							bind:value={transitionDuration}
-							class="w-full accent-[var(--accent)]"
-						/>
-					</label>
-				</div>
-			</details>
 		</div>
 
 		<!-- Timeline: single unified scroll container. No split zones, no split scrollbars.

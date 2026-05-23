@@ -9,21 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add Player, Add Enemy, and Add Encounter fields now support type-to-search suggestions with Tab completion.
 - Debug seed button (dice icon) in the navbar — seeds a default party and enemy roster for quick testing.
 
 ### Changed
 
+- Add Player, Add Enemy, and Add Encounter now share the same full-width dropdown field style.
+- Initiative entry now uses each combatant's marker color as a border accent instead of a full colored card fill.
+- Combat display defaults now use larger corner markers and a slower turn transition without exposing the old tweaks panel.
 - Accent color is now fixed to charcoal (`#3E3E3E`) — per-session and per-settings color customization has been removed.
 - Navigation bar reverts to its original warm brown (`#2F2922` light / `#17130F` dark).
-- Initiative entry card now shows the combatant's assigned marker color as its background, making it easy to identify who is rolling at a glance.
 - Initiative progress dots now reflect each combatant's marker color.
 
 ### Fixed
 
+- Add Player and Add Enemy dropdown lists now keep readable text in dark mode.
+- Initiative entry keeps focus in the roll field after using the mouse to advance.
 - E2E tests now clean up party members after each run; test-generated roster entries no longer persist across dev server sessions.
 
 ### Removed
 
+- Combat display tweaks panel from the tracker screen.
 - "Show Player HP" display toggle — player hit points are no longer shown on the tracker or idle screen.
 - "HP Reset on New Combat" setting from the Combat section.
 - Theme Color selector from the Settings page.

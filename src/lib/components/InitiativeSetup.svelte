@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import type { CombatState, PartyMember, Enemy, Encounter } from '$lib/types';
 	import { settings } from '$lib/stores.svelte';
+	import AutocompleteField from './AutocompleteField.svelte';
 
 	interface Props {
 		party: PartyMember[];
@@ -57,13 +58,27 @@
 	let playerNameInput = $state('');
 	let enemyNameInput = $state('');
 	let selectedEncounterId = $state('');
+	let encounterNameInput = $state('');
+	let initiativeRollInput = $state<HTMLInputElement | null>(null);
 
 	const playerCombatants = $derived(combatants.filter((c) => c.type === 'player'));
 	const enemyCombatants = $derived(combatants.filter((c) => c.type === 'enemy'));
 	const availableParty = $derived(
 		party.filter((p) => !combatants.some((c) => c.type === 'player' && c.sourceId === p.id))
 	);
-	const selectedEncounter = $derived(encounters.find((e) => e.id === selectedEncounterId));
+	const partyOptions = $derived(availableParty.map((member) => ({ id: member.id, label: member.name })));
+	const enemyOptions = $derived(enemies.map((enemy) => ({ id: enemy.id, label: enemy.name })));
+	const encounterOptions = $derived(
+		encounters.map((encounter) => ({ id: encounter.id, label: encounter.name }))
+	);
+	const selectedEncounter = $derived.by(() => {
+		const selectedById = encounters.find((encounter) => encounter.id === selectedEncounterId);
+		if (selectedById && selectedById.name === encounterNameInput.trim()) return selectedById;
+
+		return encounters.find(
+			(encounter) => encounter.name.toLowerCase() === encounterNameInput.trim().toLowerCase()
+		);
+	});
 
 	function showExactHp(combatant: SetupCombatant) {
 		if (combatant.maxHp <= 0) return false;
@@ -101,7 +116,7 @@
 		enemyDialogMode = 'enemy';
 		playerNameInput = '';
 		enemyNameInput = '';
-		selectedEncounterId = encounters[0]?.id ?? '';
+		setDefaultEncounterSelection();
 	}
 
 	function closeAddDialog() {
@@ -109,6 +124,21 @@
 		enemyDialogMode = 'enemy';
 		playerNameInput = '';
 		enemyNameInput = '';
+		selectedEncounterId = '';
+		encounterNameInput = '';
+	}
+
+	function setDefaultEncounterSelection() {
+		const firstEncounter = encounters[0];
+		selectedEncounterId = firstEncounter?.id ?? '';
+		encounterNameInput = firstEncounter?.name ?? '';
+	}
+
+	function setEnemyDialogMode(mode: 'enemy' | 'encounter') {
+		enemyDialogMode = mode;
+		if (mode === 'encounter' && !selectedEncounter) {
+			setDefaultEncounterSelection();
+		}
 	}
 
 	function addQuickCombatant(type: 'player' | 'enemy', name: string) {
@@ -226,6 +256,13 @@
 		closeAddDialog();
 	}
 
+	function handleEncounterInput(value: string) {
+		const exactMatch = encounters.find(
+			(encounter) => encounter.name.toLowerCase() === value.trim().toLowerCase()
+		);
+		selectedEncounterId = exactMatch?.id ?? '';
+	}
+
 	function submitEnemyDialog() {
 		if (enemyDialogMode === 'encounter') {
 			addSelectedEncounter();
@@ -273,16 +310,25 @@
 		}
 	}
 
+	async function focusInitiativeInput() {
+		await tick();
+		initiativeRollInput?.focus();
+	}
+
 	function proceedToInitiative() {
 		if (combatants.length < 2) return;
 		step = 'initiative';
 		currentInitiativeIndex = 0;
 		initiativeInput = '';
+		focusInitiativeInput();
 	}
 
 	function submitInitiative() {
 		const value = parseInt(initiativeInput, 10);
-		if (isNaN(value)) return;
+		if (isNaN(value)) {
+			focusInitiativeInput();
+			return;
+		}
 
 		combatants[currentInitiativeIndex].initiative = value;
 		combatants = [...combatants];
@@ -290,6 +336,7 @@
 
 		if (currentInitiativeIndex < combatants.length - 1) {
 			currentInitiativeIndex++;
+			focusInitiativeInput();
 		} else {
 			beginCombat();
 		}
@@ -343,10 +390,6 @@
 		/>
 		<path d="M3.5 22h17" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
 	</svg>
-{/snippet}
-
-{#snippet ChevronDownIcon()}
-	<span class="h-3 w-3 rotate-45 border-r-2 border-b-2 border-current" aria-hidden="true"></span>
 {/snippet}
 
 <svelte:window onkeydown={handleWindowKeydown} />
@@ -647,7 +690,7 @@
 							<div class="flex rounded-sm border border-border bg-bg-paper p-1" aria-label="Enemy add mode">
 								<button
 									type="button"
-									onclick={() => (enemyDialogMode = 'enemy')}
+									onclick={() => setEnemyDialogMode('enemy')}
 									class="min-h-9 cursor-pointer rounded-sm border-none px-3 font-ui text-xs font-semibold uppercase tracking-wider transition-colors"
 									class:bg-bg-card={enemyDialogMode === 'enemy'}
 									class:text-text-heading={enemyDialogMode === 'enemy'}
@@ -657,7 +700,7 @@
 								</button>
 								<button
 									type="button"
-									onclick={() => (enemyDialogMode = 'encounter')}
+									onclick={() => setEnemyDialogMode('encounter')}
 									class="min-h-9 cursor-pointer rounded-sm border-none px-3 font-ui text-xs font-semibold uppercase tracking-wider transition-colors"
 									class:bg-bg-card={enemyDialogMode === 'encounter'}
 									class:text-text-heading={enemyDialogMode === 'encounter'}
@@ -687,46 +730,14 @@
 						}}
 					>
 						<div>
-							<label class="sr-only" for="player-combatant-name">Player name</label>
-							<div class="flex min-h-14 overflow-hidden rounded-sm border-2 border-border bg-bg-paper focus-within:border-[var(--accent)]">
-								<input
-									id="player-combatant-name"
-									data-testid="player-combatant-name"
-									type="text"
-									bind:value={playerNameInput}
-									placeholder="Type a name here"
-									list="party-member-options"
-									class="min-w-0 flex-1 bg-transparent px-4 text-lg text-text-heading placeholder:text-text-muted focus:outline-none"
-								/>
-								<div class="relative w-16 border-l-2 border-border bg-bg-card">
-									<select
-										aria-label="Choose party member"
-										class="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent text-transparent focus:outline-none"
-										value=""
-										onchange={(event) => {
-											const target = event.currentTarget;
-											playerNameInput = target.value;
-											target.value = '';
-										}}
-									>
-										<option value=""></option>
-										{#each availableParty as member}
-											<option value={member.name}>{member.name}</option>
-										{/each}
-									</select>
-									<span
-										class="pointer-events-none absolute inset-0 flex items-center justify-center text-text-heading"
-										aria-hidden="true"
-									>
-										{@render ChevronDownIcon()}
-									</span>
-								</div>
-							</div>
-							<datalist id="party-member-options">
-								{#each availableParty as member}
-									<option value={member.name}></option>
-								{/each}
-							</datalist>
+							<AutocompleteField
+								id="player-combatant-name"
+								label="Player name"
+								testId="player-combatant-name"
+								bind:value={playerNameInput}
+								options={partyOptions}
+								emptyText="No available party members"
+							/>
 						</div>
 
 						<div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -758,64 +769,27 @@
 					>
 						{#if enemyDialogMode === 'enemy'}
 							<div>
-								<label class="sr-only" for="enemy-combatant-name">Enemy name</label>
-								<div class="flex min-h-14 overflow-hidden rounded-sm border-2 border-border bg-bg-paper focus-within:border-[var(--accent)]">
-									<input
-										id="enemy-combatant-name"
-										data-testid="enemy-combatant-name"
-										type="text"
-										bind:value={enemyNameInput}
-										placeholder="Type a name here"
-										list="enemy-options"
-										class="min-w-0 flex-1 bg-transparent px-4 text-lg text-text-heading placeholder:text-text-muted focus:outline-none"
-									/>
-									<div class="relative w-16 border-l-2 border-border bg-bg-card">
-										<select
-											aria-label="Choose enemy"
-											class="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent text-transparent focus:outline-none"
-											value=""
-											onchange={(event) => {
-												const target = event.currentTarget;
-												enemyNameInput = target.value;
-												target.value = '';
-											}}
-										>
-											<option value=""></option>
-											{#each enemies as enemy}
-												<option value={enemy.name}>{enemy.name}</option>
-											{/each}
-										</select>
-										<span
-											class="pointer-events-none absolute inset-0 flex items-center justify-center text-text-heading"
-											aria-hidden="true"
-										>
-											{@render ChevronDownIcon()}
-										</span>
-									</div>
-								</div>
-								<datalist id="enemy-options">
-									{#each enemies as enemy}
-										<option value={enemy.name}></option>
-									{/each}
-								</datalist>
+								<AutocompleteField
+									id="enemy-combatant-name"
+									label="Enemy name"
+									testId="enemy-combatant-name"
+									bind:value={enemyNameInput}
+									options={enemyOptions}
+									emptyText="No saved enemies"
+								/>
 							</div>
 						{:else}
 							<div>
-								<label class="sr-only" for="encounter-select">Encounter template</label>
-								<select
+								<AutocompleteField
 									id="encounter-select"
-									bind:value={selectedEncounterId}
+									label="Encounter template"
+									bind:value={encounterNameInput}
+									options={encounterOptions}
 									disabled={encounters.length === 0}
-									class="min-h-14 w-full rounded-sm border-2 border-border bg-bg-paper px-4 text-lg text-text-heading disabled:opacity-45"
-								>
-									{#if encounters.length === 0}
-										<option value="">No encounter templates</option>
-									{:else}
-										{#each encounters as encounter}
-											<option value={encounter.id}>{encounter.name}</option>
-										{/each}
-									{/if}
-								</select>
+									emptyText="No encounter templates"
+									onInput={handleEncounterInput}
+									onSelect={(option) => (selectedEncounterId = option.id)}
+								/>
 							</div>
 						{/if}
 
@@ -846,28 +820,34 @@
 		</div>
 
 		<div
-			class="mx-auto max-w-[500px] rounded-md border-4 border-text-heading p-10 text-center text-text-nav"
-			style="background: {combatants[currentInitiativeIndex].markerColor}; box-shadow: 0 12px 32px {combatants[currentInitiativeIndex].markerColor}73;"
+			class="mx-auto max-w-[500px] rounded-md border-4 bg-bg-card p-10 text-center text-text-heading"
+			style="border-color: {combatants[currentInitiativeIndex].markerColor}; box-shadow: var(--shadow-md);"
 		>
-			<div class="mb-2 font-ui text-sm font-bold uppercase tracking-wider opacity-80">
+			<div
+				class="mb-2 font-ui text-sm font-bold uppercase tracking-wider"
+				style="color: {combatants[currentInitiativeIndex].markerColor};"
+			>
 				{combatants[currentInitiativeIndex].type === 'player' ? 'Player' : 'Enemy'}
 			</div>
 			<div class="mb-6 font-display text-4xl font-bold">
 				{combatants[currentInitiativeIndex].name}
 			</div>
 			<input
+				bind:this={initiativeRollInput}
 				type="text"
 				inputmode="numeric"
 				bind:value={initiativeInput}
 				onkeydown={handleInitiativeKeydown}
 				placeholder="Initiative roll"
-				class="mb-4 w-full max-w-[200px] rounded-md border-2 border-white/30 bg-white/20 p-4 text-center text-lg font-bold text-text-nav placeholder:text-white/50 focus:border-white focus:outline-none"
-				autofocus
+				class="mb-4 w-full max-w-[200px] rounded-md border-2 border-border bg-bg-paper p-4 text-center text-lg font-bold text-text-heading placeholder:text-text-muted focus:border-[var(--initiative-marker)] focus:outline-none"
+				style="--initiative-marker: {combatants[currentInitiativeIndex].markerColor};"
 			/>
 			<div>
 				<button
+					type="button"
 					onclick={submitInitiative}
-					class="cursor-pointer rounded-pill border-2 border-white/30 bg-white/20 px-8 py-3 font-ui text-sm font-bold uppercase tracking-wider text-text-nav transition-all hover:bg-white/30"
+					class="cursor-pointer rounded-pill border-2 bg-bg-paper px-8 py-3 font-ui text-sm font-bold uppercase tracking-wider transition-colors hover:bg-bg-surface"
+					style="border-color: {combatants[currentInitiativeIndex].markerColor}; color: {combatants[currentInitiativeIndex].markerColor};"
 				>
 					{currentInitiativeIndex < combatants.length - 1 ? 'Next' : 'Begin Combat!'}
 				</button>
