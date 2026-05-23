@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Opening Marching Order now lands directly on combat setup instead of a separate dashboard page.
+- The previous `/tracker` combat URL now redirects to the main combat screen at `/`.
+- Combat setup now has a more prominent first-screen masthead with lineup counts and the initiative action.
 - Combat setup now uses separate player and enemy columns with focused add dialogs and stable lineups.
 - Party management is now framed as a name-first roster, with character details tucked behind optional display details.
 - Roster profile fields are now truly optional instead of using placeholder stat values.
-- The home and menu navigation now surface the non-combat slideshow as a first-class table display mode.
+- Menu navigation now surfaces the non-combat slideshow as a first-class table display mode.
 - Player HP and AC now default to hidden on initiative and idle screens.
 - Combat mode now uses the shared app shell so the menu remains accessible during fights.
 - Navigation, card corners, and shadows have been tightened for a less toy-like visual feel.
@@ -37,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Constants file with 5e status conditions, accent colors, default settings, and keyboard shortcuts
 - Reactive settings store with dynamic accent color application
 - App shell with sticky navbar, slide-out sidebar drawer, and file-based routing
-- Home/Dashboard page with action cards for Start Combat, Manage Party, and Enemy Library
+- Combat setup landing screen with direct access to initiative tracking
 - Party Library page with full CRUD for player characters (name, AC, HP, level, passive perception)
 - Enemy Library page with custom enemy management and encounter template builder
 - Initiative Tracker page with vertical timeline layout (history/active/queue zones), round counter, spacebar next-turn, undo support, and keyboard shortcuts

@@ -32,10 +32,10 @@ The core value proposition is **speed**. Any downtime in D&D breaks immersion. T
 Locked early because SvelteKit's file-based routing makes URLs architectural. Changing these later breaks bookmarks and future QR join URLs.
 
 ```
-/              → Home / Dashboard
+/              → Combat Start / Initiative Tracker (core combat screen)
 /party         → Party Library (manage player characters)
 /enemies       → Enemy Library (custom enemies + encounter templates)
-/tracker       → Initiative Tracker (the core combat screen)
+/tracker       → Legacy redirect to /
 /idle          → Idle Screen / Slideshow Mode
 /settings      → App Settings
 ```
@@ -169,10 +169,6 @@ Even though V1 is single-view and player-facing, the data model separates what's
 
 ## Screens
 
-### Home / Dashboard
-
-Three clear paths: Start Combat, Manage Party, Enemy Library. No widgets, no stats. If no party exists, nudge toward Manage Party.
-
 ### Party Library
 
 CRUD interface for player characters. Fields: name, AC, max HP, level, passive perception. Portrait placeholder for V1 (initials or generic icon), uploadable image in V2.
@@ -186,9 +182,9 @@ Two sections:
 
 **SRD Monster Database (V1.5):** Searchable list of official D&D SRD 5.1/5.2 monsters bundled at build time. Lazy-loaded, not in the main JS bundle. The DM searches, finds a monster, and either adds it directly to an encounter or copies it to Custom Enemies with optional edits. For initiative tracking purposes, surface: name, HP, AC, CR, and notable traits. CC-BY-4.0 attribution required (footer or credits page).
 
-### Initiative Tracker (Combat View)
+### Combat Start / Initiative Tracker
 
-The core screen. 90% of in-session time is spent here.
+The core screen and default landing page. 90% of in-session time is spent here. When no combat is active, `/` opens directly to combat setup; when a saved combat is active, `/` opens directly to the combat view.
 
 #### Layout: Vertical Timeline
 

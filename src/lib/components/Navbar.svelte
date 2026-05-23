@@ -7,7 +7,7 @@
 
 	let { onMenuClick }: Props = $props();
 
-	const isTracker = $derived(page.url.pathname === '/tracker');
+	const isCombat = $derived(page.url.pathname === '/' || page.url.pathname === '/tracker');
 </script>
 
 <nav
@@ -33,9 +33,9 @@
 			</a>
 		</div>
 
-		<div class="ml-auto flex items-center gap-3" class:hidden={isTracker}>
+		<div class="ml-auto flex items-center gap-3" class:hidden={isCombat}>
 			<a
-				href="/tracker"
+				href="/"
 				class="inline-flex min-h-11 items-center rounded-sm border px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper no-underline transition-all duration-150 hover:-translate-y-0.5"
 				style="background: var(--accent); box-shadow: var(--shadow-sm);"
 			>

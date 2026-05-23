@@ -277,31 +277,39 @@
 
 {#if step === 'select'}
 	<div class="mx-auto max-w-[1180px]">
-		<div
-			class="sticky top-4 z-20 mb-6 rounded-md border-2 border-border bg-bg-card p-4"
-			style="box-shadow: var(--shadow-md);"
-		>
-			<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-				<div>
+		<header class="mb-7 border-b-2 border-border pb-5">
+			<div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+				<div class="min-w-0">
+					<p class="mb-2 font-ui text-xs font-semibold uppercase tracking-wider text-text-muted">
+						Marching Order
+					</p>
 					<h1
-						class="font-display text-[clamp(2rem,4vw,2.5rem)] leading-tight font-bold text-text-heading"
+						class="font-display text-[clamp(2.2rem,4vw,3rem)] leading-tight font-bold text-text-heading"
 					>
 						Combat Setup
 					</h1>
-					<p class="text-sm text-text-muted">
-						{combatants.length} combatant{combatants.length === 1 ? '' : 's'} in the lineup
-					</p>
+					<div class="mt-3 flex flex-wrap gap-2 text-sm text-text-muted">
+						<span class="rounded-sm border border-border bg-bg-card px-3 py-1">
+							{playerCombatants.length} player{playerCombatants.length === 1 ? '' : 's'}
+						</span>
+						<span class="rounded-sm border border-border bg-bg-card px-3 py-1">
+							{enemyCombatants.length} enem{enemyCombatants.length === 1 ? 'y' : 'ies'}
+						</span>
+						<span class="rounded-sm border border-border bg-bg-card px-3 py-1">
+							{combatants.length} total
+						</span>
+					</div>
 				</div>
 				<button
 					onclick={proceedToInitiative}
 					disabled={combatants.length < 2}
-					class="min-h-11 cursor-pointer rounded-sm border-none px-6 py-3 font-ui text-sm font-bold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
+					class="min-h-11 w-full cursor-pointer rounded-sm border-none px-6 py-3 font-ui text-sm font-bold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 md:w-auto"
 					style="background: var(--accent); box-shadow: var(--shadow-sm);"
 				>
 					Roll Initiative &rarr;
 				</button>
 			</div>
-		</div>
+		</header>
 
 		<div class="grid gap-6 lg:grid-cols-2">
 			<section
