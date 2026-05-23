@@ -59,7 +59,15 @@
 	}
 
 	const recommendationQuery = $derived(tabQuery || value);
-	const filteredOptions = $derived(matchingOptions(recommendationQuery).slice(0, 4));
+	const hasRecommendationQuery = $derived(normalize(recommendationQuery).length > 0);
+	const hasExactValue = $derived(
+		options.some((option) => option.label.toLowerCase() === value.trim().toLowerCase())
+	);
+	const filteredOptions = $derived(
+		hasRecommendationQuery && (Boolean(tabQuery) || !hasExactValue)
+			? matchingOptions(recommendationQuery).slice(0, 4)
+			: []
+	);
 	const suggestedOption = $derived(completionOption(value));
 	const completionText = $derived(suggestedOption ? suggestedOption.label.slice(value.length) : '');
 
@@ -154,7 +162,7 @@
 				autocomplete="off"
 				role="combobox"
 				aria-label={label}
-				aria-expanded="true"
+				aria-expanded={filteredOptions.length > 0}
 				aria-controls={`${id}-options`}
 				aria-autocomplete="list"
 				class="relative z-10 min-h-14 w-full bg-transparent px-4 text-lg font-semibold text-text-heading placeholder:text-text-muted focus:outline-none disabled:cursor-not-allowed"
@@ -168,7 +176,7 @@
 			class="flex w-16 shrink-0 cursor-pointer items-center justify-center border-l-2 border-border bg-bg-card text-text-heading transition-colors hover:bg-bg-surface disabled:cursor-not-allowed"
 			disabled={disabled}
 			aria-label="Show choices"
-			aria-expanded="true"
+			aria-expanded={filteredOptions.length > 0}
 			onmousedown={(event) => event.preventDefault()}
 			onclick={focusInput}
 		>
@@ -179,8 +187,7 @@
 	<div
 		id={`${id}-options`}
 		role="listbox"
-		class="mt-1 overflow-hidden rounded-sm border-2 border-border bg-bg-card py-1"
-		style="box-shadow: var(--shadow-md);"
+		class="mt-2 h-[184px] overflow-hidden rounded-sm border border-border/40 bg-bg-paper/35 py-1"
 	>
 		{#each recommendationSlots as slot}
 			{@const option = filteredOptions[slot]}
@@ -189,8 +196,8 @@
 					type="button"
 					role="option"
 					aria-selected={slot === activeIndex}
-					class="block h-11 w-full cursor-pointer border-none px-4 text-left text-lg font-semibold text-text-heading transition-colors hover:bg-bg-paper"
-					class:bg-bg-paper={slot === activeIndex}
+					class="block h-11 w-full cursor-pointer border-none bg-transparent px-4 text-left text-lg font-semibold text-text-heading transition-colors hover:bg-bg-card"
+					class:bg-bg-card={slot === activeIndex}
 					disabled={disabled}
 					onmousedown={(event) => event.preventDefault()}
 					onclick={() => chooseOption(option)}
@@ -198,9 +205,7 @@
 					{option.label}
 				</button>
 			{:else if slot === 0 && filteredOptions.length === 0}
-				<div class="flex h-11 items-center px-4 text-sm text-text-muted">
-					{emptyText}
-				</div>
+				<div class="h-11" aria-hidden="true"></div>
 			{:else}
 				<div class="h-11" aria-hidden="true"></div>
 			{/if}

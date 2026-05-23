@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Autocomplete recommendations no longer appear as an already-open menu before the DM starts typing.
 - Add Player and Add Enemy dropdown lists now keep readable text in dark mode.
 - Initiative entry keeps focus in the roll field after using the mouse to advance.
 - E2E tests now clean up party members after each run; test-generated roster entries no longer persist across dev server sessions.
