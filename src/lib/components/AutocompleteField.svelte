@@ -30,9 +30,10 @@
 		onSelect
 	}: Props = $props();
 
-	let isOpen = $state(false);
 	let activeIndex = $state(0);
+	let tabQuery = $state('');
 	let inputEl = $state<HTMLInputElement | null>(null);
+	const recommendationSlots = [0, 1, 2, 3];
 
 	function normalize(text: string) {
 		return text.trim().toLowerCase();
@@ -44,16 +45,21 @@
 		return option.label.toLowerCase().includes(normalizedQuery);
 	}
 
+	function matchingOptions(query: string) {
+		return options.filter((option) => optionMatches(option, query));
+	}
+
 	function completionOption(query: string) {
 		const normalizedQuery = normalize(query);
 		if (!normalizedQuery) return undefined;
-		return options.find((option) => {
+		return matchingOptions(query).find((option) => {
 			const label = option.label.toLowerCase();
 			return label.startsWith(normalizedQuery) && label.length > normalizedQuery.length;
 		});
 	}
 
-	const filteredOptions = $derived(options.filter((option) => optionMatches(option, value)).slice(0, 8));
+	const recommendationQuery = $derived(tabQuery || value);
+	const filteredOptions = $derived(matchingOptions(recommendationQuery).slice(0, 4));
 	const suggestedOption = $derived(completionOption(value));
 	const completionText = $derived(suggestedOption ? suggestedOption.label.slice(value.length) : '');
 
@@ -66,13 +72,12 @@
 	function updateValue(nextValue: string) {
 		value = nextValue;
 		activeIndex = 0;
-		isOpen = true;
+		tabQuery = '';
 		onInput?.(nextValue);
 	}
 
 	function chooseOption(option: AutocompleteOption) {
 		value = option.label;
-		isOpen = false;
 		onSelect?.(option);
 		inputEl?.focus();
 	}
@@ -80,22 +85,24 @@
 	function handleKeydown(event: KeyboardEvent) {
 		if (disabled) return;
 
-		if (event.key === 'Tab' && suggestedOption) {
+		if (event.key === 'Tab' && filteredOptions.length > 0) {
 			event.preventDefault();
-			chooseOption(suggestedOption);
+			if (!tabQuery) {
+				tabQuery = value;
+			}
+			chooseOption(filteredOptions[activeIndex]);
+			activeIndex = (activeIndex + 1) % filteredOptions.length;
 			return;
 		}
 
 		if (event.key === 'ArrowDown') {
 			event.preventDefault();
-			isOpen = true;
 			activeIndex = filteredOptions.length === 0 ? 0 : (activeIndex + 1) % filteredOptions.length;
 			return;
 		}
 
 		if (event.key === 'ArrowUp') {
 			event.preventDefault();
-			isOpen = true;
 			activeIndex =
 				filteredOptions.length === 0
 					? 0
@@ -103,20 +110,20 @@
 			return;
 		}
 
-		if (event.key === 'Enter' && isOpen && filteredOptions[activeIndex]) {
+		if (event.key === 'Enter' && filteredOptions[activeIndex]) {
 			event.preventDefault();
 			chooseOption(filteredOptions[activeIndex]);
 			return;
 		}
 
 		if (event.key === 'Escape') {
-			isOpen = false;
+			tabQuery = '';
+			activeIndex = 0;
 		}
 	}
 
-	function toggleOptions() {
+	function focusInput() {
 		if (disabled) return;
-		isOpen = !isOpen;
 		inputEl?.focus();
 	}
 </script>
@@ -147,16 +154,12 @@
 				autocomplete="off"
 				role="combobox"
 				aria-label={label}
-				aria-expanded={isOpen}
+				aria-expanded="true"
 				aria-controls={`${id}-options`}
 				aria-autocomplete="list"
 				class="relative z-10 min-h-14 w-full bg-transparent px-4 text-lg font-semibold text-text-heading placeholder:text-text-muted focus:outline-none disabled:cursor-not-allowed"
-				onfocus={() => (isOpen = true)}
 				oninput={(event) => updateValue(event.currentTarget.value)}
 				onkeydown={handleKeydown}
-				onblur={() => {
-					window.setTimeout(() => (isOpen = false), 120);
-				}}
 			/>
 		</div>
 
@@ -165,38 +168,42 @@
 			class="flex w-16 shrink-0 cursor-pointer items-center justify-center border-l-2 border-border bg-bg-card text-text-heading transition-colors hover:bg-bg-surface disabled:cursor-not-allowed"
 			disabled={disabled}
 			aria-label="Show choices"
-			aria-expanded={isOpen}
+			aria-expanded="true"
 			onmousedown={(event) => event.preventDefault()}
-			onclick={toggleOptions}
+			onclick={focusInput}
 		>
 			<span class="h-3 w-3 rotate-45 border-r-2 border-b-2 border-current" aria-hidden="true"></span>
 		</button>
 	</div>
 
-	{#if isOpen && !disabled}
-		<div
-			id={`${id}-options`}
-			role="listbox"
-			class="mt-1 max-h-56 overflow-y-auto rounded-sm border-2 border-border bg-bg-card py-1"
-			style="box-shadow: var(--shadow-md);"
-		>
-			{#if filteredOptions.length > 0}
-				{#each filteredOptions as option, index (option.id)}
-					<button
-						type="button"
-						role="option"
-						aria-selected={index === activeIndex}
-						class="block min-h-11 w-full cursor-pointer border-none px-4 py-2 text-left text-lg font-semibold text-text-heading transition-colors hover:bg-bg-paper"
-						class:bg-bg-paper={index === activeIndex}
-						onmousedown={(event) => event.preventDefault()}
-						onclick={() => chooseOption(option)}
-					>
-						{option.label}
-					</button>
-				{/each}
+	<div
+		id={`${id}-options`}
+		role="listbox"
+		class="mt-1 overflow-hidden rounded-sm border-2 border-border bg-bg-card py-1"
+		style="box-shadow: var(--shadow-md);"
+	>
+		{#each recommendationSlots as slot}
+			{@const option = filteredOptions[slot]}
+			{#if option}
+				<button
+					type="button"
+					role="option"
+					aria-selected={slot === activeIndex}
+					class="block h-11 w-full cursor-pointer border-none px-4 text-left text-lg font-semibold text-text-heading transition-colors hover:bg-bg-paper"
+					class:bg-bg-paper={slot === activeIndex}
+					disabled={disabled}
+					onmousedown={(event) => event.preventDefault()}
+					onclick={() => chooseOption(option)}
+				>
+					{option.label}
+				</button>
+			{:else if slot === 0 && filteredOptions.length === 0}
+				<div class="flex h-11 items-center px-4 text-sm text-text-muted">
+					{emptyText}
+				</div>
 			{:else}
-				<div class="px-4 py-3 text-sm text-text-muted">{emptyText}</div>
+				<div class="h-11" aria-hidden="true"></div>
 			{/if}
-		</div>
-	{/if}
+		{/each}
+	</div>
 </div>

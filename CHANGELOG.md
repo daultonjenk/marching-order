@@ -9,12 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add Player, Add Enemy, and Add Encounter fields now support type-to-search suggestions with Tab completion.
+- Add Player, Add Enemy, and Add Encounter fields now support type-to-search suggestions with Tab completion that cycles through the visible recommendations.
 - Debug seed button (dice icon) in the navbar — seeds a default party and enemy roster for quick testing.
 
 ### Changed
 
-- Add Player, Add Enemy, and Add Encounter now share the same full-width dropdown field style.
+- Add Player, Add Enemy, and Add Encounter now share the same full-width field style with a fixed four-row recommendation area.
 - Initiative entry now uses each combatant's marker color as a border accent instead of a full colored card fill.
 - Combat display defaults now use larger corner markers and a slower turn transition without exposing the old tweaks panel.
 - Accent color is now fixed to charcoal (`#3E3E3E`) — per-session and per-settings color customization has been removed.
