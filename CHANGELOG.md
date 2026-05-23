@@ -7,10 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Debug seed button (dice icon) in the navbar — seeds a default party and enemy roster for quick testing.
+
 ### Changed
 
-- Accent color is now fixed to a neutral charcoal (`#3E3E3E`) — per-session and per-settings color customization has been removed.
-- Navigation bar color updated to charcoal (`#3E3E3E`) in both light and dark mode.
+- Accent color is now fixed to charcoal (`#3E3E3E`) — per-session and per-settings color customization has been removed.
+- Navigation bar reverts to its original warm brown (`#2F2922` light / `#17130F` dark).
+- Initiative entry card now shows the combatant's assigned marker color as its background, making it easy to identify who is rolling at a glance.
+- Initiative progress dots now reflect each combatant's marker color.
+
+### Fixed
+
+- E2E tests now clean up party members after each run; test-generated roster entries no longer persist across dev server sessions.
 
 ### Removed
 

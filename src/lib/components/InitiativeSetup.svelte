@@ -847,7 +847,7 @@
 
 		<div
 			class="mx-auto max-w-[500px] rounded-md border-4 border-text-heading p-10 text-center text-bg-paper"
-			style="background: var(--accent); box-shadow: 0 12px 32px var(--accent-shadow);"
+			style="background: {combatants[currentInitiativeIndex].markerColor}; box-shadow: 0 12px 32px {combatants[currentInitiativeIndex].markerColor}73;"
 		>
 			<div class="mb-2 font-ui text-sm font-bold uppercase tracking-wider opacity-80">
 				{combatants[currentInitiativeIndex].type === 'player' ? 'Player' : 'Enemy'}
@@ -879,9 +879,9 @@
 				<div
 					class="h-2 w-8 rounded-full transition-all"
 					style="background: {i < currentInitiativeIndex
-						? 'var(--accent)'
+						? c.markerColor + '99'
 						: i === currentInitiativeIndex
-							? 'var(--accent-light)'
+							? c.markerColor
 							: 'var(--color-border)'};"
 				></div>
 			{/each}

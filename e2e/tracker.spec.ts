@@ -3,16 +3,13 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 const defaultSettings = {
 	darkMode: false,
 	showWallpaper: true,
-	showPlayerHp: false,
 	showPlayerAc: false,
 	showEnemyHp: false,
 	showEnemyAc: false,
 	enemyHpFormat: 'severity',
 	idleSlideDuration: 10,
 	idleTransitionStyle: 'fade',
-	autoRollEnemyInitiative: false,
-	hpResetBehavior: 'reset',
-	accentColor: '#9C7848'
+	autoRollEnemyInitiative: false
 };
 
 const combatants = [
@@ -59,8 +56,11 @@ const combatants = [
 ] as const;
 
 async function resetApp(request: APIRequestContext) {
-	await request.delete('/api/combat');
-	await request.post('/api/settings', { data: defaultSettings });
+	await Promise.all([
+		request.delete('/api/combat'),
+		request.delete('/api/party'),
+		request.post('/api/settings', { data: defaultSettings }),
+	]);
 }
 
 async function seedCombat(request: APIRequestContext, currentTurnIndex = 0) {
@@ -101,7 +101,6 @@ test('lets DMs quick-add statless combatants during setup', async ({ page, reque
 	await request.post('/api/settings', {
 		data: {
 			...defaultSettings,
-			showPlayerHp: true,
 			showPlayerAc: true,
 			showEnemyHp: true,
 			showEnemyAc: true,
@@ -256,7 +255,6 @@ test('keeps name-only roster entries free of fake stats', async ({ page, request
 	await request.post('/api/settings', {
 		data: {
 			...defaultSettings,
-			showPlayerHp: true,
 			showPlayerAc: true
 		}
 	});
@@ -307,7 +305,6 @@ test('respects player HP and AC settings on setup and tracker cards', async ({ p
 	await request.post('/api/settings', {
 		data: {
 			...defaultSettings,
-			showPlayerHp: true,
 			showPlayerAc: true
 		}
 	});

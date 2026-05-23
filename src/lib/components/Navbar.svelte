@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { settings } from '$lib/stores.svelte';
+	import { invalidateAll } from '$app/navigation';
 
 	interface Props {
 		onMenuClick: () => void;
@@ -9,6 +10,11 @@
 
 	function toggleTheme() {
 		settings.update({ darkMode: !settings.current.darkMode });
+	}
+
+	async function seedDebugData() {
+		await fetch('/api/debug', { method: 'POST' });
+		await invalidateAll();
 	}
 </script>
 
@@ -36,6 +42,23 @@
 		</div>
 
 		<div class="ml-auto flex items-center gap-3">
+			<button
+				type="button"
+				onclick={seedDebugData}
+				class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent transition-all duration-150 hover:bg-[var(--nav-hover-bg)]"
+				style="color: var(--color-text-nav);"
+				aria-label="Seed debug data"
+				title="Seed debug data"
+			>
+				<svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+					<rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
+					<circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+					<circle cx="15.5" cy="8.5" r="1.5" fill="currentColor"/>
+					<circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+					<circle cx="8.5" cy="15.5" r="1.5" fill="currentColor"/>
+					<circle cx="15.5" cy="15.5" r="1.5" fill="currentColor"/>
+				</svg>
+			</button>
 			<button
 				type="button"
 				onclick={toggleTheme}

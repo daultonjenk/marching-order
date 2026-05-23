@@ -30,6 +30,7 @@ export interface StorageAdapter {
 	getParty(): Promise<PartyMember[]>;
 	savePartyMember(member: PartyMember): Promise<void>;
 	deletePartyMember(id: string): Promise<void>;
+	clearParty(): Promise<void>;
 
 	getCustomEnemies(): Promise<Enemy[]>;
 	saveCustomEnemy(enemy: Enemy): Promise<void>;
@@ -92,6 +93,10 @@ export class D1StorageAdapter implements StorageAdapter {
 
 	async deletePartyMember(id: string): Promise<void> {
 		await this.db.prepare('DELETE FROM party_members WHERE id = ?').bind(id).run();
+	}
+
+	async clearParty(): Promise<void> {
+		await this.db.prepare('DELETE FROM party_members').run();
 	}
 
 	async getCustomEnemies(): Promise<Enemy[]> {
@@ -275,6 +280,10 @@ class MemoryStorageAdapter implements StorageAdapter {
 		memoryState.party = memoryState.party.filter((m) => m.id !== id);
 	}
 
+	async clearParty(): Promise<void> {
+		memoryState.party = [];
+	}
+
 	async getCustomEnemies(): Promise<Enemy[]> {
 		return [...memoryState.enemies].sort((a, b) => a.name.localeCompare(b.name));
 	}
@@ -382,6 +391,10 @@ class LocalStorageAdapter implements StorageAdapter {
 			'party',
 			party.filter((m) => m.id !== id)
 		);
+	}
+
+	async clearParty(): Promise<void> {
+		this.set('party', []);
 	}
 
 	async getCustomEnemies(): Promise<Enemy[]> {
