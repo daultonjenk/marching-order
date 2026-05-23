@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Combat mode now keeps the current turn locked inside the visible viewport while history and queue entries stay constrained around it.
+- Combatant corner markers now use balanced triangular corner pockets instead of long narrow wedges.
+- Active combatant cards now use theme-aware colors so names remain readable in dark mode.
+- The combat navbar now includes a quick light/dark mode toggle for changing table visibility mid-session.
+- The combat tweaks panel now adjusts accent color and combat card corner size for faster visual exploration.
+- Combatant rename controls now use a compact pencil icon instead of text.
+- Add player/enemy chooser controls now use a drawn dropdown chevron instead of text.
+- Combat setup rows now support renaming combatants and assigning colored markers before initiative starts.
+- Combat cards now use a neutral active fill with colored corner markers to keep names and status effects readable.
+- Initiative entry now uses a plain numeric text field without browser stepper arrows.
+- The add enemy dialog now separates single-enemy and encounter-template setup behind an Enemy/Encounter toggle.
+- Combat setup masthead spacing is tighter for projector readability.
 - Opening Marching Order now lands directly on combat setup instead of a separate dashboard page.
 - The previous `/tracker` combat URL now redirects to the main combat screen at `/`.
 - Combat setup now has a more prominent first-screen masthead with lineup counts and the initiative action.
@@ -26,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The tracker now keeps recent past turns visible when initiative wraps into a new round.
 - Enemy HP, HP severity, and AC are no longer shown on read-only screens when their display settings are disabled.
+
+### Removed
+
+- Removed the redundant Start Combat button from the top navigation.
 
 ### Added
 

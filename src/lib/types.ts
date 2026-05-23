@@ -45,6 +45,7 @@ export interface Combatant {
 	isDown: boolean;
 	isDead: boolean;
 	portraitUrl?: string;
+	markerColor?: string;
 }
 
 export interface StatusCondition {

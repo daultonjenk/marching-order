@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 
 const defaultSettings = {
 	darkMode: false,
@@ -78,6 +78,16 @@ async function waitForApp(page: { waitForFunction: (fn: () => boolean) => Promis
 	await page.waitForFunction(() => document.documentElement.dataset.appReady === 'true');
 }
 
+async function clickAndWaitForCombatSave(page: Page, click: () => Promise<unknown>) {
+	await Promise.all([
+		page.waitForResponse(
+			(response) =>
+				response.url().includes('/api/combat') && response.request().method() === 'POST'
+		),
+		click()
+	]);
+}
+
 test.beforeEach(async ({ request }) => {
 	await resetApp(request);
 });
@@ -85,6 +95,7 @@ test.beforeEach(async ({ request }) => {
 test('lets DMs quick-add statless combatants during setup', async ({ page, request }) => {
 	const quickPlayer = `Quick Hero ${Date.now().toString(36)}`;
 	const quickEnemy = `Quick Foe ${Date.now().toString(36)}`;
+	const renamedEnemy = `${quickEnemy} Renamed`;
 	const rosterPlayer = `Roster Hero ${Date.now().toString(36)}`;
 
 	await request.post('/api/settings', {
@@ -126,6 +137,12 @@ test('lets DMs quick-add statless combatants during setup', async ({ page, reque
 	await page.getByRole('button', { name: /confirm/i }).click();
 
 	await enemyColumn.getByTestId('open-enemy-add').click();
+	await expect(page.getByRole('heading', { name: /add enemy/i })).toBeVisible();
+	await expect(page.getByLabel('Encounter template')).toHaveCount(0);
+	await page.getByRole('button', { name: /^encounter$/i }).click();
+	await expect(page.getByRole('heading', { name: /add encounter/i })).toBeVisible();
+	await expect(page.getByLabel('Encounter template')).toBeVisible();
+	await page.getByRole('button', { name: /^enemy$/i }).click();
 	await page.getByTestId('enemy-combatant-name').fill(quickEnemy);
 	await page.getByRole('button', { name: /confirm/i }).click();
 
@@ -140,13 +157,20 @@ test('lets DMs quick-add statless combatants during setup', async ({ page, reque
 	await expect(setupEnemy.getByTestId('setup-combatant-hp')).toHaveCount(0);
 	await expect(setupEnemy.getByTestId('setup-combatant-ac')).toHaveCount(0);
 
+	await setupEnemy.getByRole('button', { name: /rename/i }).click();
+	await page.getByLabel(`Rename ${quickEnemy}`).fill(renamedEnemy);
+	await setupEnemy.getByRole('button', { name: /save/i }).click();
+	await expect(page.getByTestId('setup-combatant').filter({ hasText: renamedEnemy })).toBeVisible();
+
 	await page.getByRole('button', { name: /roll initiative/i }).click();
 	await page.getByPlaceholder('Initiative roll').fill('20');
 	await page.getByRole('button', { name: /next/i }).click();
 	await page.getByPlaceholder('Initiative roll').fill('10');
 	await page.getByRole('button', { name: /next/i }).click();
 	await page.getByPlaceholder('Initiative roll').fill('5');
-	await page.getByRole('button', { name: /begin combat/i }).click();
+	await clickAndWaitForCombatSave(page, () =>
+		page.getByRole('button', { name: /begin combat/i }).click()
+	);
 
 	const activeCombatant = page.getByTestId('active-combatant-card');
 	await expect(activeCombatant).toContainText(quickPlayer);
@@ -159,11 +183,17 @@ test('keeps the last completed turns visible when a new round starts', async ({ 
 
 	await page.goto('/tracker');
 	await waitForApp(page);
-	await page.getByRole('button', { name: /next turn/i }).click();
+	await clickAndWaitForCombatSave(page, () =>
+		page.getByRole('button', { name: /next turn/i }).click()
+	);
 	await expect(page.getByTestId('active-combatant-card')).toContainText('Bram');
-	await page.getByRole('button', { name: /next turn/i }).click();
+	await clickAndWaitForCombatSave(page, () =>
+		page.getByRole('button', { name: /next turn/i }).click()
+	);
 	await expect(page.getByTestId('active-combatant-card')).toContainText('Skeleton 1');
-	await page.getByRole('button', { name: /next turn/i }).click();
+	await clickAndWaitForCombatSave(page, () =>
+		page.getByRole('button', { name: /next turn/i }).click()
+	);
 
 	await expect(page.getByTestId('active-combatant-card')).toContainText('Alia');
 	await expect(page.getByTestId('round-counter')).toHaveText('2');
@@ -172,8 +202,21 @@ test('keeps the last completed turns visible when a new round starts', async ({ 
 	await expect(historyCards).toHaveCount(2);
 	await expect(historyCards.nth(0)).toContainText('Bram');
 	await expect(historyCards.nth(1)).toContainText('Skeleton 1');
+	await expect
+		.poll(() =>
+			page.getByTestId('active-combatant-card').evaluate((element) => {
+				const rect = element.getBoundingClientRect();
+				return rect.top >= 0 && rect.bottom <= window.innerHeight;
+			})
+		)
+		.toBe(true);
+	await expect
+		.poll(() =>
+			page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 2)
+		)
+		.toBe(true);
 
-	await page.getByRole('button', { name: /undo/i }).click();
+	await clickAndWaitForCombatSave(page, () => page.getByRole('button', { name: /undo/i }).click());
 
 	await expect(page.getByTestId('active-combatant-card')).toContainText('Skeleton 1');
 	await expect(page.getByTestId('round-counter')).toHaveText('1');

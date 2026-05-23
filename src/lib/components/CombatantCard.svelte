@@ -5,9 +5,16 @@
 	interface Props {
 		combatant: Combatant;
 		variant: 'history' | 'active' | 'queue';
+		activeBackground?: string;
+		cornerSizePercent?: number;
 	}
 
-	let { combatant, variant }: Props = $props();
+	let {
+		combatant,
+		variant,
+		activeBackground = 'var(--color-bg-paper)',
+		cornerSizePercent = 24
+	}: Props = $props();
 
 	const showExactHp = $derived(
 		combatant.maxHp > 0 && combatant.type === 'player'
@@ -42,15 +49,30 @@
 		yellow: '#eab308',
 		red: '#ef4444'
 	};
+
+	const markerColor = $derived(combatant.markerColor ?? '#8f8a82');
+	const cornerLength = $derived(
+		`${Math.round(cornerSizePercent * (variant === 'active' ? 4.6 : 3.35))}px`
+	);
 </script>
 
 {#if variant === 'active'}
 	<div
 		data-testid="active-combatant-card"
-		class="mb-6 rounded-md border-4 border-text-heading p-8 text-bg-paper md:px-10 md:py-12"
-		style="background: var(--accent); box-shadow: 0 12px 32px var(--accent-shadow), 0 0 0 1px rgba(255,255,255,0.1) inset;"
+		class="relative mb-6 overflow-hidden rounded-md border-4 border-text-heading p-8 text-text-heading md:px-10 md:py-12"
+		style="background: {activeBackground}; box-shadow: var(--shadow-md);"
 	>
-		<div class="flex items-center justify-between gap-6">
+		<span
+			class="absolute top-0 left-0"
+			style="background: {markerColor}; width: {cornerLength}; height: {cornerLength}; clip-path: polygon(0 0, 100% 0, 0 100%);"
+			aria-hidden="true"
+		></span>
+		<span
+			class="absolute right-0 bottom-0"
+			style="background: {markerColor}; width: {cornerLength}; height: {cornerLength}; clip-path: polygon(100% 0, 100% 100%, 0 100%);"
+			aria-hidden="true"
+		></span>
+		<div class="relative z-10 flex min-h-28 items-center justify-between gap-6 px-12">
 			<div class="flex-1">
 				<div class="mb-3 font-display text-[clamp(2rem,5vw,3rem)] leading-tight font-bold">
 					{combatant.name}
@@ -77,8 +99,7 @@
 					<div class="mt-4 flex flex-wrap gap-3">
 						{#each combatant.statuses as status (status.id)}
 							<span
-								class="inline-flex items-center gap-1.5 rounded-pill border border-transparent bg-bg-paper px-5 py-2 text-lg font-semibold"
-								style="color: var(--accent);"
+								class="inline-flex items-center gap-1.5 rounded-pill border border-border/50 bg-bg-paper px-5 py-2 text-lg font-semibold text-text-heading"
 							>
 								{status.label}
 							</span>
@@ -86,19 +107,26 @@
 					</div>
 				{/if}
 			</div>
-			<div class="text-6xl opacity-90">
-				{combatant.type === 'player' ? '⚔️' : '💀'}
-			</div>
 		</div>
 	</div>
 {:else}
 	<div
 		data-testid="{variant}-combatant-card"
-		class="mb-4 rounded-md border-2 border-border bg-bg-card p-6 transition-all duration-200 hover:-translate-y-0.5"
+		class="relative mb-4 overflow-hidden rounded-md border-2 border-border bg-bg-card p-6 transition-all duration-200 hover:-translate-y-0.5"
 		class:opacity-60={combatant.isDown}
 		style="box-shadow: var(--shadow-sm);"
 	>
-		<div class="flex items-center justify-between gap-6">
+		<span
+			class="absolute top-0 left-0"
+			style="background: {markerColor}; width: {cornerLength}; height: {cornerLength}; clip-path: polygon(0 0, 100% 0, 0 100%);"
+			aria-hidden="true"
+		></span>
+		<span
+			class="absolute right-0 bottom-0"
+			style="background: {markerColor}; width: {cornerLength}; height: {cornerLength}; clip-path: polygon(100% 0, 100% 100%, 0 100%);"
+			aria-hidden="true"
+		></span>
+		<div class="relative z-10 flex items-center justify-between gap-6 px-8">
 			<div class="flex-1">
 				<div class="mb-2 font-display text-2xl leading-tight font-bold text-text-heading">
 					{combatant.name}

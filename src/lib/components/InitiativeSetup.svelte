@@ -22,11 +22,18 @@
 		level?: number;
 		passivePerception?: number;
 		sourceId?: string;
+		markerColor: string;
 	};
+
+	const markerPalette = ['#22c55e', '#3b82f6', '#f97316', '#a855f7', '#eab308', '#ef4444'];
+
+	function nextMarkerColor() {
+		return markerPalette[combatants.length % markerPalette.length];
+	}
 
 	let combatants = $state<SetupCombatant[]>(
 		untrack(() =>
-			party.map((p) => ({
+			party.map((p, index) => ({
 				id: crypto.randomUUID(),
 				name: p.name,
 				type: 'player' as const,
@@ -35,7 +42,8 @@
 				ac: p.ac ?? 0,
 				level: p.level,
 				passivePerception: p.passivePerception,
-				sourceId: p.id
+				sourceId: p.id,
+				markerColor: markerPalette[index % markerPalette.length]
 			}))
 		)
 	);
@@ -43,6 +51,9 @@
 	let currentInitiativeIndex = $state(0);
 	let initiativeInput = $state('');
 	let addDialog = $state<'player' | 'enemy' | null>(null);
+	let enemyDialogMode = $state<'enemy' | 'encounter'>('enemy');
+	let editingCombatantId = $state<string | null>(null);
+	let renameInput = $state('');
 	let playerNameInput = $state('');
 	let enemyNameInput = $state('');
 	let selectedEncounterId = $state('');
@@ -87,6 +98,7 @@
 
 	function openAddDialog(type: 'player' | 'enemy') {
 		addDialog = type;
+		enemyDialogMode = 'enemy';
 		playerNameInput = '';
 		enemyNameInput = '';
 		selectedEncounterId = encounters[0]?.id ?? '';
@@ -94,6 +106,7 @@
 
 	function closeAddDialog() {
 		addDialog = null;
+		enemyDialogMode = 'enemy';
 		playerNameInput = '';
 		enemyNameInput = '';
 	}
@@ -110,7 +123,8 @@
 				type,
 				initiative: 0,
 				maxHp: 0,
-				ac: 0
+				ac: 0,
+				markerColor: nextMarkerColor()
 			}
 		];
 	}
@@ -128,7 +142,8 @@
 				ac: member.ac ?? 0,
 				level: member.level,
 				passivePerception: member.passivePerception,
-				sourceId: member.id
+				sourceId: member.id,
+				markerColor: nextMarkerColor()
 			}
 		];
 	}
@@ -168,7 +183,8 @@
 						initiative: 0,
 						maxHp: enemy.maxHp,
 						ac: enemy.ac,
-						sourceId: enemy.id
+						sourceId: enemy.id,
+						markerColor: nextMarkerColor()
 					}
 				];
 			}
@@ -182,13 +198,14 @@
 				id: crypto.randomUUID(),
 				name: nextDisplayName('enemy', enemy.name),
 				type: 'enemy',
-				initiative: 0,
-				maxHp: enemy.maxHp,
-				ac: enemy.ac,
-				sourceId: enemy.id
-			}
-		];
-	}
+			initiative: 0,
+			maxHp: enemy.maxHp,
+			ac: enemy.ac,
+			sourceId: enemy.id,
+			markerColor: nextMarkerColor()
+		}
+	];
+}
 
 	function confirmEnemyAdd() {
 		const name = enemyNameInput.trim();
@@ -209,8 +226,51 @@
 		closeAddDialog();
 	}
 
+	function submitEnemyDialog() {
+		if (enemyDialogMode === 'encounter') {
+			addSelectedEncounter();
+			return;
+		}
+		confirmEnemyAdd();
+	}
+
 	function removeCombatant(id: string) {
 		combatants = combatants.filter((c) => c.id !== id);
+		if (editingCombatantId === id) {
+			editingCombatantId = null;
+			renameInput = '';
+		}
+	}
+
+	function updateMarkerColor(id: string, color: string) {
+		combatants = combatants.map((c) => (c.id === id ? { ...c, markerColor: color } : c));
+	}
+
+	function startRename(combatant: SetupCombatant) {
+		editingCombatantId = combatant.id;
+		renameInput = combatant.name;
+	}
+
+	function cancelRename() {
+		editingCombatantId = null;
+		renameInput = '';
+	}
+
+	function saveRename(id: string) {
+		const name = renameInput.trim();
+		if (!name) return;
+		combatants = combatants.map((c) => (c.id === id ? { ...c, name } : c));
+		cancelRename();
+	}
+
+	function handleRenameKeydown(e: KeyboardEvent, id: string) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			saveRename(id);
+		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			cancelRename();
+		}
 	}
 
 	function proceedToInitiative() {
@@ -250,7 +310,8 @@
 				passivePerception: c.passivePerception,
 				statuses: [],
 				isDown: false,
-				isDead: false
+				isDead: false,
+				markerColor: c.markerColor
 			})),
 			currentTurnIndex: 0,
 			round: 1,
@@ -273,37 +334,38 @@
 	}
 </script>
 
+{#snippet PencilIcon()}
+	<svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+		<path d="M4 16.7V20h3.3L18.8 8.5l-3.3-3.3L4 16.7Z" fill="currentColor" />
+		<path
+			d="m17 3.7 1.3-1.3a1.4 1.4 0 0 1 2 0l1.3 1.3a1.4 1.4 0 0 1 0 2L20.3 7 17 3.7Z"
+			fill="currentColor"
+		/>
+		<path d="M3.5 22h17" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2" />
+	</svg>
+{/snippet}
+
+{#snippet ChevronDownIcon()}
+	<span class="h-3 w-3 rotate-45 border-r-2 border-b-2 border-current" aria-hidden="true"></span>
+{/snippet}
+
 <svelte:window onkeydown={handleWindowKeydown} />
 
 {#if step === 'select'}
 	<div class="mx-auto max-w-[1180px]">
-		<header class="mb-7 border-b-2 border-border pb-5">
-			<div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+		<header class="mb-6 border-b-2 border-border pb-4">
+			<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div class="min-w-0">
-					<p class="mb-2 font-ui text-xs font-semibold uppercase tracking-wider text-text-muted">
-						Marching Order
-					</p>
 					<h1
-						class="font-display text-[clamp(2.2rem,4vw,3rem)] leading-tight font-bold text-text-heading"
+						class="font-display text-[clamp(2.2rem,4vw,3rem)] leading-none font-bold text-text-heading"
 					>
 						Combat Setup
 					</h1>
-					<div class="mt-3 flex flex-wrap gap-2 text-sm text-text-muted">
-						<span class="rounded-sm border border-border bg-bg-card px-3 py-1">
-							{playerCombatants.length} player{playerCombatants.length === 1 ? '' : 's'}
-						</span>
-						<span class="rounded-sm border border-border bg-bg-card px-3 py-1">
-							{enemyCombatants.length} enem{enemyCombatants.length === 1 ? 'y' : 'ies'}
-						</span>
-						<span class="rounded-sm border border-border bg-bg-card px-3 py-1">
-							{combatants.length} total
-						</span>
-					</div>
 				</div>
 				<button
 					onclick={proceedToInitiative}
 					disabled={combatants.length < 2}
-					class="min-h-11 w-full cursor-pointer rounded-sm border-none px-6 py-3 font-ui text-sm font-bold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 md:w-auto"
+					class="min-h-14 w-full cursor-pointer rounded-sm border-none px-10 py-3 font-ui text-lg font-bold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0 md:w-auto"
 					style="background: var(--accent); box-shadow: var(--shadow-sm);"
 				>
 					Roll Initiative &rarr;
@@ -343,8 +405,31 @@
 									data-testid="setup-combatant"
 									class="flex min-h-14 items-center justify-between gap-3 rounded-sm border border-border/50 bg-bg-paper px-4 py-3"
 								>
-									<div class="min-w-0">
-										<div class="truncate font-semibold text-text-heading">{c.name}</div>
+									<div class="flex min-w-0 flex-1 items-center gap-3">
+										<label
+											class="relative h-8 w-8 shrink-0 cursor-pointer overflow-hidden rounded-sm border-2 border-border"
+											style="background: {c.markerColor};"
+										>
+											<span class="sr-only">Set color for {c.name}</span>
+											<input
+												type="color"
+												value={c.markerColor}
+												oninput={(event) => updateMarkerColor(c.id, event.currentTarget.value)}
+												class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+											/>
+										</label>
+										<div class="min-w-0 flex-1">
+											{#if editingCombatantId === c.id}
+												<input
+													type="text"
+													bind:value={renameInput}
+													onkeydown={(event) => handleRenameKeydown(event, c.id)}
+													class="w-full rounded-sm border-2 border-border bg-bg-card px-3 py-2 font-semibold text-text-heading focus:border-[var(--accent)] focus:outline-none"
+													aria-label="Rename {c.name}"
+												/>
+											{:else}
+												<div class="truncate font-semibold text-text-heading">{c.name}</div>
+											{/if}
 										{#if showExactHp(c) || showAc(c)}
 											<div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-text-muted">
 												{#if showExactHp(c)}
@@ -355,7 +440,33 @@
 												{/if}
 											</div>
 										{/if}
+										</div>
 									</div>
+									{#if editingCombatantId === c.id}
+										<button
+											type="button"
+											onclick={() => saveRename(c.id)}
+											class="min-h-11 shrink-0 cursor-pointer rounded-sm border border-border/60 bg-transparent px-3 font-ui text-xs font-semibold uppercase tracking-wider text-text-heading transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+										>
+											Save
+										</button>
+										<button
+											type="button"
+											onclick={cancelRename}
+											class="min-h-11 shrink-0 cursor-pointer rounded-sm border border-border/60 bg-transparent px-3 font-ui text-xs font-semibold uppercase tracking-wider text-text-muted transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+										>
+											Cancel
+										</button>
+									{:else}
+										<button
+											type="button"
+											onclick={() => startRename(c)}
+											class="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-border/60 bg-transparent text-text-muted transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+											aria-label="Rename {c.name}"
+										>
+											{@render PencilIcon()}
+										</button>
+									{/if}
 									<button
 										onclick={() => removeCombatant(c.id)}
 										class="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-border/60 bg-transparent text-2xl leading-none text-text-muted transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-600"
@@ -407,8 +518,31 @@
 									data-testid="setup-combatant"
 									class="flex min-h-14 items-center justify-between gap-3 rounded-sm border border-border/50 bg-bg-paper px-4 py-3"
 								>
-									<div class="min-w-0">
-										<div class="truncate font-semibold text-text-heading">{c.name}</div>
+									<div class="flex min-w-0 flex-1 items-center gap-3">
+										<label
+											class="relative h-8 w-8 shrink-0 cursor-pointer overflow-hidden rounded-sm border-2 border-border"
+											style="background: {c.markerColor};"
+										>
+											<span class="sr-only">Set color for {c.name}</span>
+											<input
+												type="color"
+												value={c.markerColor}
+												oninput={(event) => updateMarkerColor(c.id, event.currentTarget.value)}
+												class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+											/>
+										</label>
+										<div class="min-w-0 flex-1">
+											{#if editingCombatantId === c.id}
+												<input
+													type="text"
+													bind:value={renameInput}
+													onkeydown={(event) => handleRenameKeydown(event, c.id)}
+													class="w-full rounded-sm border-2 border-border bg-bg-card px-3 py-2 font-semibold text-text-heading focus:border-[var(--accent)] focus:outline-none"
+													aria-label="Rename {c.name}"
+												/>
+											{:else}
+												<div class="truncate font-semibold text-text-heading">{c.name}</div>
+											{/if}
 										{#if showExactHp(c) || showHpSeverity(c) || showAc(c)}
 											<div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-text-muted">
 												{#if showExactHp(c)}
@@ -424,7 +558,33 @@
 												{/if}
 											</div>
 										{/if}
+										</div>
 									</div>
+									{#if editingCombatantId === c.id}
+										<button
+											type="button"
+											onclick={() => saveRename(c.id)}
+											class="min-h-11 shrink-0 cursor-pointer rounded-sm border border-border/60 bg-transparent px-3 font-ui text-xs font-semibold uppercase tracking-wider text-text-heading transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+										>
+											Save
+										</button>
+										<button
+											type="button"
+											onclick={cancelRename}
+											class="min-h-11 shrink-0 cursor-pointer rounded-sm border border-border/60 bg-transparent px-3 font-ui text-xs font-semibold uppercase tracking-wider text-text-muted transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+										>
+											Cancel
+										</button>
+									{:else}
+										<button
+											type="button"
+											onclick={() => startRename(c)}
+											class="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-border/60 bg-transparent text-text-muted transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+											aria-label="Rename {c.name}"
+										>
+											{@render PencilIcon()}
+										</button>
+									{/if}
 									<button
 										onclick={() => removeCombatant(c.id)}
 										class="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-border/60 bg-transparent text-2xl leading-none text-text-muted transition-colors hover:border-red-400 hover:bg-red-100 hover:text-red-600"
@@ -475,9 +635,39 @@
 				data-testid={addDialog === 'player' ? 'player-add-dialog' : 'enemy-add-dialog'}
 			>
 				<div class="mb-4 flex items-center justify-between gap-4">
-					<h2 id="add-combatant-title" class="font-display text-2xl font-bold text-text-heading">
-						Add {addDialog === 'player' ? 'Player' : 'Enemy'}
-					</h2>
+					<div class="flex flex-wrap items-center gap-3">
+						<h2 id="add-combatant-title" class="font-display text-2xl font-bold text-text-heading">
+							Add {addDialog === 'player'
+								? 'Player'
+								: enemyDialogMode === 'enemy'
+									? 'Enemy'
+									: 'Encounter'}
+						</h2>
+						{#if addDialog === 'enemy'}
+							<div class="flex rounded-sm border border-border bg-bg-paper p-1" aria-label="Enemy add mode">
+								<button
+									type="button"
+									onclick={() => (enemyDialogMode = 'enemy')}
+									class="min-h-9 cursor-pointer rounded-sm border-none px-3 font-ui text-xs font-semibold uppercase tracking-wider transition-colors"
+									class:bg-bg-card={enemyDialogMode === 'enemy'}
+									class:text-text-heading={enemyDialogMode === 'enemy'}
+									class:text-text-muted={enemyDialogMode !== 'enemy'}
+								>
+									Enemy
+								</button>
+								<button
+									type="button"
+									onclick={() => (enemyDialogMode = 'encounter')}
+									class="min-h-9 cursor-pointer rounded-sm border-none px-3 font-ui text-xs font-semibold uppercase tracking-wider transition-colors"
+									class:bg-bg-card={enemyDialogMode === 'encounter'}
+									class:text-text-heading={enemyDialogMode === 'encounter'}
+									class:text-text-muted={enemyDialogMode !== 'encounter'}
+								>
+									Encounter
+								</button>
+							</div>
+						{/if}
+					</div>
 					<button
 						type="button"
 						onclick={closeAddDialog}
@@ -508,21 +698,29 @@
 									list="party-member-options"
 									class="min-w-0 flex-1 bg-transparent px-4 text-lg text-text-heading placeholder:text-text-muted focus:outline-none"
 								/>
-								<select
-									aria-label="Choose party member"
-									class="w-16 cursor-pointer border-l-2 border-border bg-bg-card text-center text-text-heading focus:outline-none"
-									value=""
-									onchange={(event) => {
-										const target = event.currentTarget;
-										playerNameInput = target.value;
-										target.value = '';
-									}}
-								>
-									<option value="">+</option>
-									{#each availableParty as member}
-										<option value={member.name}>{member.name}</option>
-									{/each}
-								</select>
+								<div class="relative w-16 border-l-2 border-border bg-bg-card">
+									<select
+										aria-label="Choose party member"
+										class="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent text-transparent focus:outline-none"
+										value=""
+										onchange={(event) => {
+											const target = event.currentTarget;
+											playerNameInput = target.value;
+											target.value = '';
+										}}
+									>
+										<option value=""></option>
+										{#each availableParty as member}
+											<option value={member.name}>{member.name}</option>
+										{/each}
+									</select>
+									<span
+										class="pointer-events-none absolute inset-0 flex items-center justify-center text-text-heading"
+										aria-hidden="true"
+									>
+										{@render ChevronDownIcon()}
+									</span>
+								</div>
 							</div>
 							<datalist id="party-member-options">
 								{#each availableParty as member}
@@ -555,52 +753,60 @@
 						class="space-y-5"
 						onsubmit={(event) => {
 							event.preventDefault();
-							confirmEnemyAdd();
+							submitEnemyDialog();
 						}}
 					>
-						<div>
-							<label class="sr-only" for="enemy-combatant-name">Enemy name</label>
-							<div class="flex min-h-14 overflow-hidden rounded-sm border-2 border-border bg-bg-paper focus-within:border-[var(--accent)]">
-								<input
-									id="enemy-combatant-name"
-									data-testid="enemy-combatant-name"
-									type="text"
-									bind:value={enemyNameInput}
-									placeholder="Type a name here"
-									list="enemy-options"
-									class="min-w-0 flex-1 bg-transparent px-4 text-lg text-text-heading placeholder:text-text-muted focus:outline-none"
-								/>
-								<select
-									aria-label="Choose enemy"
-									class="w-16 cursor-pointer border-l-2 border-border bg-bg-card text-center text-text-heading focus:outline-none"
-									value=""
-									onchange={(event) => {
-										const target = event.currentTarget;
-										enemyNameInput = target.value;
-										target.value = '';
-									}}
-								>
-									<option value="">+</option>
+						{#if enemyDialogMode === 'enemy'}
+							<div>
+								<label class="sr-only" for="enemy-combatant-name">Enemy name</label>
+								<div class="flex min-h-14 overflow-hidden rounded-sm border-2 border-border bg-bg-paper focus-within:border-[var(--accent)]">
+									<input
+										id="enemy-combatant-name"
+										data-testid="enemy-combatant-name"
+										type="text"
+										bind:value={enemyNameInput}
+										placeholder="Type a name here"
+										list="enemy-options"
+										class="min-w-0 flex-1 bg-transparent px-4 text-lg text-text-heading placeholder:text-text-muted focus:outline-none"
+									/>
+									<div class="relative w-16 border-l-2 border-border bg-bg-card">
+										<select
+											aria-label="Choose enemy"
+											class="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent text-transparent focus:outline-none"
+											value=""
+											onchange={(event) => {
+												const target = event.currentTarget;
+												enemyNameInput = target.value;
+												target.value = '';
+											}}
+										>
+											<option value=""></option>
+											{#each enemies as enemy}
+												<option value={enemy.name}>{enemy.name}</option>
+											{/each}
+										</select>
+										<span
+											class="pointer-events-none absolute inset-0 flex items-center justify-center text-text-heading"
+											aria-hidden="true"
+										>
+											{@render ChevronDownIcon()}
+										</span>
+									</div>
+								</div>
+								<datalist id="enemy-options">
 									{#each enemies as enemy}
-										<option value={enemy.name}>{enemy.name}</option>
+										<option value={enemy.name}></option>
 									{/each}
-								</select>
+								</datalist>
 							</div>
-							<datalist id="enemy-options">
-								{#each enemies as enemy}
-									<option value={enemy.name}></option>
-								{/each}
-							</datalist>
-						</div>
-
-						<div class="rounded-sm border border-border/60 bg-bg-paper p-3">
-							<div class="flex flex-col gap-3 sm:flex-row">
+						{:else}
+							<div>
 								<label class="sr-only" for="encounter-select">Encounter template</label>
 								<select
 									id="encounter-select"
 									bind:value={selectedEncounterId}
 									disabled={encounters.length === 0}
-									class="min-h-11 flex-1 rounded-sm border-2 border-border bg-bg-card px-3 text-text-heading disabled:opacity-45"
+									class="min-h-14 w-full rounded-sm border-2 border-border bg-bg-paper px-4 text-lg text-text-heading disabled:opacity-45"
 								>
 									{#if encounters.length === 0}
 										<option value="">No encounter templates</option>
@@ -610,25 +816,17 @@
 										{/each}
 									{/if}
 								</select>
-								<button
-									type="button"
-									onclick={addSelectedEncounter}
-									disabled={!selectedEncounter}
-									class="min-h-11 cursor-pointer rounded-sm border-2 border-border bg-bg-card px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-text-heading transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-45"
-								>
-									Add Encounter
-								</button>
 							</div>
-						</div>
+						{/if}
 
 						<div class="flex justify-end">
 							<button
 								type="submit"
-								disabled={!enemyNameInput.trim()}
+								disabled={enemyDialogMode === 'enemy' ? !enemyNameInput.trim() : !selectedEncounter}
 								class="min-h-11 cursor-pointer rounded-sm border-none px-6 py-3 font-ui text-sm font-bold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
 								style="background: var(--accent); box-shadow: var(--shadow-sm);"
 							>
-								Confirm
+								{enemyDialogMode === 'enemy' ? 'Confirm' : 'Add Encounter'}
 							</button>
 						</div>
 					</form>
@@ -658,7 +856,8 @@
 				{combatants[currentInitiativeIndex].name}
 			</div>
 			<input
-				type="number"
+				type="text"
+				inputmode="numeric"
 				bind:value={initiativeInput}
 				onkeydown={handleInitiativeKeydown}
 				placeholder="Initiative roll"

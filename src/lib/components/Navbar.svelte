@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/state';
+	import { settings } from '$lib/stores.svelte';
 
 	interface Props {
 		onMenuClick: () => void;
@@ -7,7 +7,9 @@
 
 	let { onMenuClick }: Props = $props();
 
-	const isCombat = $derived(page.url.pathname === '/' || page.url.pathname === '/tracker');
+	function toggleTheme() {
+		settings.update({ darkMode: !settings.current.darkMode });
+	}
 </script>
 
 <nav
@@ -33,14 +35,34 @@
 			</a>
 		</div>
 
-		<div class="ml-auto flex items-center gap-3" class:hidden={isCombat}>
-			<a
-				href="/"
-				class="inline-flex min-h-11 items-center rounded-sm border px-5 py-2.5 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper no-underline transition-all duration-150 hover:-translate-y-0.5"
-				style="background: var(--accent); box-shadow: var(--shadow-sm);"
+		<div class="ml-auto flex items-center gap-3">
+			<button
+				type="button"
+				onclick={toggleTheme}
+				class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent transition-all duration-150 hover:bg-[var(--nav-hover-bg)]"
+				style="color: var(--color-text-nav);"
+				aria-label={settings.current.darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
 			>
-				Start Combat
-			</a>
+				{#if settings.current.darkMode}
+					<svg class="h-6 w-6" viewBox="0 0 24 24" aria-hidden="true">
+						<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2.2" />
+						<path
+							d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.5 12h3M18.5 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"
+							fill="none"
+							stroke="currentColor"
+							stroke-linecap="round"
+							stroke-width="2.2"
+						/>
+					</svg>
+				{:else}
+					<svg class="h-6 w-6" viewBox="0 0 24 24" aria-hidden="true">
+						<path
+							d="M20.2 14.7A7.7 7.7 0 0 1 9.3 3.8a8.7 8.7 0 1 0 10.9 10.9Z"
+							fill="currentColor"
+						/>
+					</svg>
+				{/if}
+			</button>
 		</div>
 	</div>
 </nav>

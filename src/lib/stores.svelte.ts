@@ -23,7 +23,12 @@ class SettingsState {
 
 	private applyAppearance() {
 		if (typeof document === 'undefined') return;
-		const color = ACCENT_COLORS.find((c) => c.value === this.current.accentColor) ?? ACCENT_COLORS[0];
+		const color = ACCENT_COLORS.find((c) => c.value === this.current.accentColor) ?? {
+			value: this.current.accentColor,
+			light: this.current.accentColor,
+			glow: `${this.current.accentColor}59`,
+			shadow: `${this.current.accentColor}73`
+		};
 		const root = document.documentElement;
 		root.dataset.theme = this.current.darkMode ? 'dark' : 'light';
 		root.dataset.wallpaper = this.current.showWallpaper ? 'on' : 'off';

@@ -125,6 +125,7 @@ interface Combatant {
   isDown: boolean             // true when HP reaches 0
   isDead: boolean             // manually toggled by DM (enemies)
   portraitUrl?: string
+  markerColor?: string        // Per-combat visual identifier, shown as a small color marker/corner accent
 }
 
 interface StatusCondition {
@@ -190,9 +191,9 @@ The core screen and default landing page. 90% of in-session time is spent here. 
 
 A vertical list along a central spine, ordered by initiative (highest first). Three zones:
 
-- **History zone (top):** 1-2 entries, visually dimmed/smaller. Shows who just went. Scrolls off naturally.
+- **History zone (top):** 1-2 entries, visually dimmed/smaller. Shows who just went without pushing the active turn off screen.
 - **Active zone (center):** Current combatant's turn. Visually dominant — larger card, accent border/background, subtle pulse or glow. This is where every eye in the room goes.
-- **Queue zone (below):** Upcoming turns in order. Normal size. Players see when their turn is coming.
+- **Queue zone (below):** Upcoming turns in order. Normal size. Players see when their turn is coming, clipped within the fixed combat viewport when the list is long.
 
 The current turn should always be visible without scrolling.
 
