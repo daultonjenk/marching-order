@@ -79,14 +79,14 @@ interface StorageAdapter {
 interface PartyMember {
   id: string
   name: string
-  ac: number
-  maxHp: number
-  currentHp: number
-  level: number
-  passivePerception: number
+  ac?: number
+  maxHp?: number
+  currentHp?: number
+  level?: number
+  passivePerception?: number
   portraitUrl?: string        // V2 — URL to R2-stored image
   // No class, no ability scores, no spell lists.
-  // This is a combat reference card, not a character sheet.
+  // Name is the only required roster field; display details are optional.
 }
 
 interface Enemy {

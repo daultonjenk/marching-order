@@ -1,6 +1,31 @@
 import type { PartyMember, Enemy, Encounter, EncounterEntry, CombatState, AppSettings } from './types';
 import { DEFAULT_SETTINGS } from './constants';
 
+function optionalPositiveNumber(value: unknown): number | undefined {
+	if (value === null || value === undefined || value === '') return undefined;
+	const numberValue = typeof value === 'number' ? value : Number(value);
+	return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : undefined;
+}
+
+function optionalCurrentHp(value: unknown, maxHp: number | undefined): number | undefined {
+	if (maxHp === undefined) return undefined;
+	if (value === null || value === undefined || value === '') return maxHp;
+	const numberValue = typeof value === 'number' ? value : Number(value);
+	return Number.isFinite(numberValue) && numberValue >= 0 ? numberValue : maxHp;
+}
+
+function normalizePartyMember(member: PartyMember): PartyMember {
+	const maxHp = optionalPositiveNumber(member.maxHp);
+	return {
+		...member,
+		ac: optionalPositiveNumber(member.ac),
+		maxHp,
+		currentHp: optionalCurrentHp(member.currentHp, maxHp),
+		level: optionalPositiveNumber(member.level),
+		passivePerception: optionalPositiveNumber(member.passivePerception)
+	};
+}
+
 export interface StorageAdapter {
 	getParty(): Promise<PartyMember[]>;
 	savePartyMember(member: PartyMember): Promise<void>;
@@ -32,11 +57,11 @@ export class D1StorageAdapter implements StorageAdapter {
 		return rows.results.map((r: Record<string, unknown>) => ({
 			id: r.id as string,
 			name: r.name as string,
-			ac: r.ac as number,
-			maxHp: r.max_hp as number,
-			currentHp: r.current_hp as number,
-			level: r.level as number,
-			passivePerception: r.passive_perception as number,
+			ac: optionalPositiveNumber(r.ac),
+			maxHp: optionalPositiveNumber(r.max_hp),
+			currentHp: optionalCurrentHp(r.current_hp, optionalPositiveNumber(r.max_hp)),
+			level: optionalPositiveNumber(r.level),
+			passivePerception: optionalPositiveNumber(r.passive_perception),
 			portraitUrl: r.portrait_url as string | undefined
 		}));
 	}
@@ -52,7 +77,16 @@ export class D1StorageAdapter implements StorageAdapter {
 				   passive_perception = excluded.passive_perception,
 				   portrait_url = excluded.portrait_url, updated_at = datetime('now')`
 			)
-			.bind(member.id, member.name, member.ac, member.maxHp, member.currentHp, member.level, member.passivePerception, member.portraitUrl ?? null)
+			.bind(
+				member.id,
+				member.name,
+				member.ac ?? null,
+				member.maxHp ?? null,
+				member.currentHp ?? null,
+				member.level ?? null,
+				member.passivePerception ?? null,
+				member.portraitUrl ?? null
+			)
 			.run();
 	}
 
@@ -224,10 +258,11 @@ const memoryState: MemoryState = {
 
 class MemoryStorageAdapter implements StorageAdapter {
 	async getParty(): Promise<PartyMember[]> {
-		return [...memoryState.party].sort((a, b) => a.name.localeCompare(b.name));
+		return [...memoryState.party].map(normalizePartyMember).sort((a, b) => a.name.localeCompare(b.name));
 	}
 
 	async savePartyMember(member: PartyMember): Promise<void> {
+		member = normalizePartyMember(member);
 		const idx = memoryState.party.findIndex((m) => m.id === member.id);
 		if (idx >= 0) {
 			memoryState.party[idx] = member;
@@ -324,10 +359,13 @@ class LocalStorageAdapter implements StorageAdapter {
 	}
 
 	async getParty(): Promise<PartyMember[]> {
-		return this.get<PartyMember[]>('party', []);
+		return this.get<PartyMember[]>('party', [])
+			.map(normalizePartyMember)
+			.sort((a, b) => a.name.localeCompare(b.name));
 	}
 
 	async savePartyMember(member: PartyMember): Promise<void> {
+		member = normalizePartyMember(member);
 		const party = await this.getParty();
 		const idx = party.findIndex((m) => m.id === member.id);
 		if (idx >= 0) {

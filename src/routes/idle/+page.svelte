@@ -42,10 +42,13 @@
 			: ''
 	);
 
-	const showLevel = $derived(Boolean(member && member.level > 0));
-	const showAc = $derived(Boolean(member && member.ac > 0 && settings.current.showPlayerAc));
-	const showHp = $derived(Boolean(member && member.maxHp > 0 && settings.current.showPlayerHp));
-	const showPassivePerception = $derived(Boolean(member && member.passivePerception > 0));
+	const showLevel = $derived(Boolean(member && (member.level ?? 0) > 0));
+	const showAc = $derived(Boolean(member && (member.ac ?? 0) > 0 && settings.current.showPlayerAc));
+	const showHp = $derived(
+		Boolean(member && (member.maxHp ?? 0) > 0 && settings.current.showPlayerHp)
+	);
+	const showPassivePerception = $derived(Boolean(member && (member.passivePerception ?? 0) > 0));
+	const hpLabel = $derived(member?.maxHp ? `${member.currentHp ?? member.maxHp}/${member.maxHp}` : '');
 </script>
 
 <div class="flex min-h-[calc(100vh-120px)] items-center justify-center">
@@ -88,7 +91,7 @@
 						<span>AC {member.ac}</span>
 					{/if}
 					{#if showHp}
-						<span>HP {member.currentHp}/{member.maxHp}</span>
+						<span>HP {hpLabel}</span>
 					{/if}
 					{#if showPassivePerception}
 						<span>PP {member.passivePerception}</span>

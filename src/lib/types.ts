@@ -1,11 +1,11 @@
 export interface PartyMember {
 	id: string;
 	name: string;
-	ac: number;
-	maxHp: number;
-	currentHp: number;
-	level: number;
-	passivePerception: number;
+	ac?: number;
+	maxHp?: number;
+	currentHp?: number;
+	level?: number;
+	passivePerception?: number;
 	portraitUrl?: string;
 }
 

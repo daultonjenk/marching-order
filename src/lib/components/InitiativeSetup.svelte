@@ -26,8 +26,8 @@
 			name: p.name,
 			type: 'player' as const,
 			initiative: 0,
-			maxHp: p.maxHp,
-			ac: p.ac,
+			maxHp: p.maxHp ?? 0,
+			ac: p.ac ?? 0,
 			level: p.level,
 			passivePerception: p.passivePerception
 		}))

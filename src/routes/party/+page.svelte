@@ -29,10 +29,10 @@
 	function editMember(member: PartyMember) {
 		editing = member;
 		formName = member.name;
-		formAc = member.ac;
-		formMaxHp = member.maxHp;
-		formLevel = member.level;
-		formPassivePerception = member.passivePerception;
+		formAc = member.ac ?? 10;
+		formMaxHp = member.maxHp ?? 10;
+		formLevel = member.level ?? 1;
+		formPassivePerception = member.passivePerception ?? 10;
 		showForm = true;
 		showDisplayDetails = false;
 	}
@@ -97,16 +97,16 @@
 				<input
 					type="hidden"
 					name="currentHp"
-					value={editing?.currentHp ?? (showDisplayDetails ? formMaxHp : 0)}
+					value={showDisplayDetails ? (editing?.currentHp ?? formMaxHp) : (editing?.currentHp ?? '')}
 				/>
 				{#if !showDisplayDetails}
-					<input type="hidden" name="ac" value={editing ? formAc : 0} />
-					<input type="hidden" name="maxHp" value={editing ? formMaxHp : 0} />
-					<input type="hidden" name="level" value={editing ? formLevel : 0} />
+					<input type="hidden" name="ac" value={editing?.ac ?? ''} />
+					<input type="hidden" name="maxHp" value={editing?.maxHp ?? ''} />
+					<input type="hidden" name="level" value={editing?.level ?? ''} />
 					<input
 						type="hidden"
 						name="passivePerception"
-						value={editing ? formPassivePerception : 0}
+						value={editing?.passivePerception ?? ''}
 					/>
 				{/if}
 				<div>

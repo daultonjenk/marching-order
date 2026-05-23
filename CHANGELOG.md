@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Party management is now framed as a name-first roster, with character details tucked behind optional display details.
+- Roster profile fields are now truly optional instead of using placeholder stat values.
 - The home and menu navigation now surface the non-combat slideshow as a first-class table display mode.
 - Player HP and AC now default to hidden on initiative and idle screens.
 - Combat mode now uses the shared app shell so the menu remains accessible during fights.
