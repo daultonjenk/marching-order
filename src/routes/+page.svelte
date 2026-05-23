@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack, tick } from 'svelte';
+	import { fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import type { Combatant, CombatState } from '$lib/types';
 	import CombatantCard from '$lib/components/CombatantCard.svelte';
 	import InitiativeSetup from '$lib/components/InitiativeSetup.svelte';
@@ -12,6 +14,22 @@
 	let combatState = $state<CombatState | null>(untrack(() => data.combatState));
 	let phase = $state<'setup' | 'combat'>(untrack(() => (data.combatState ? 'combat' : 'setup')));
 	let cornerSizePercent = $state(24);
+	let transitionDuration = $state(440);
+	let scrollContainer = $state<HTMLElement | null>(null);
+	let activeZoneEl = $state<HTMLElement | null>(null);
+	let flyY = $state(28);
+
+	// Smoothly scrolls the timeline so the active card sits at ~40% from the top of the
+	// container — enough history visible above, plenty of queue visible below.
+	async function scrollToActive() {
+		await tick();
+		if (!scrollContainer || !activeZoneEl) return;
+		const containerH = scrollContainer.clientHeight;
+		const cardTop = activeZoneEl.offsetTop;
+		const cardH = activeZoneEl.offsetHeight;
+		const target = cardTop - containerH * 0.4 + cardH * 0.5;
+		scrollContainer.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+	}
 
 	function saveCombatToServer(state: CombatState) {
 		fetch('/api/combat', {
@@ -59,6 +77,7 @@
 			}
 		}
 
+		flyY = 28;
 		combatState = {
 			...combatState,
 			currentTurnIndex: nextIndex,
@@ -66,12 +85,14 @@
 			history: [...combatState.history, historyEntry]
 		};
 		saveCombatToServer(combatState);
+		scrollToActive();
 	}
 
 	function previousTurn() {
 		if (!combatState || combatState.history.length === 0) return;
 
 		const lastEntry = combatState.history[combatState.history.length - 1];
+		flyY = -28;
 		combatState = {
 			...combatState,
 			currentTurnIndex: lastEntry.turnIndex,
@@ -80,6 +101,7 @@
 			history: combatState.history.slice(0, -1)
 		};
 		saveCombatToServer(combatState);
+		scrollToActive();
 	}
 
 	function endCombat() {
@@ -104,7 +126,7 @@
 	const historyTurns = $derived.by(() => {
 		if (!combatState) return [];
 		const history = combatState.history;
-		const startIndex = Math.max(0, history.length - 2);
+		const startIndex = Math.max(0, history.length - 15);
 		return history
 			.slice(startIndex)
 			.map((entry, index) => ({
@@ -118,12 +140,40 @@
 		combatState ? combatState.combatants[combatState.currentTurnIndex] : null
 	);
 
-	const queueCombatants = $derived.by(() => {
+	type QueueItem = { combatant: Combatant; id: string; newRound?: number };
+
+	// Builds up to 8 upcoming turns, wrapping into future rounds as needed.
+	// When a wrap occurs the first alive combatant of the new round carries a
+	// `newRound` label so the template can render a divider before it.
+	const queueEntries = $derived.by((): QueueItem[] => {
 		if (!combatState) return [];
-		const idx = combatState.currentTurnIndex;
-		const rest = combatState.combatants.slice(idx + 1).filter((c) => !c.isDead);
-		const wrapped = combatState.combatants.slice(0, idx).filter((c) => !c.isDead);
-		return [...rest, ...wrapped];
+		const combatants = combatState.combatants;
+		const total = combatants.length;
+		if (total === 0) return [];
+
+		const items: QueueItem[] = [];
+		let pos = combatState.currentTurnIndex;
+		let round = combatState.round;
+		let pendingRound = false;
+
+		for (let step = 0; step < total * 10 && items.length < 8; step++) {
+			if (pos === total - 1) {
+				round++;
+				pendingRound = true;
+			}
+			pos = (pos + 1) % total;
+
+			const c = combatants[pos];
+			if (!c || c.isDead) continue;
+
+			const item: QueueItem = { combatant: c, id: `${c.id}-r${round}` };
+			if (pendingRound) {
+				item.newRound = round;
+				pendingRound = false;
+			}
+			items.push(item);
+		}
+		return items;
 	});
 </script>
 
@@ -196,7 +246,7 @@
 							></button>
 						{/each}
 					</div>
-					<label class="block text-sm font-semibold text-text-heading">
+					<label class="mb-4 block text-sm font-semibold text-text-heading">
 						<span class="mb-2 flex justify-between gap-3">
 							Corner size
 							<span>{cornerSizePercent}</span>
@@ -210,50 +260,82 @@
 							class="w-full accent-[var(--accent)]"
 						/>
 					</label>
+					<label class="block text-sm font-semibold text-text-heading">
+						<span class="mb-2 flex justify-between gap-3">
+							Turn transition
+							<span>{transitionDuration}ms</span>
+						</span>
+						<input
+							type="range"
+							min="80"
+							max="900"
+							step="20"
+							bind:value={transitionDuration}
+							class="w-full accent-[var(--accent)]"
+						/>
+					</label>
 				</div>
 			</details>
 		</div>
 
+		<!-- Timeline: single unified scroll container. No split zones, no split scrollbars.
+		     The active card smoothly scrolls to ~40% from top on each turn advance. -->
 		<div class="relative mt-5 min-h-0 flex-1 pl-14">
 			<div
 				class="absolute top-0 bottom-0 left-4 w-3.5 rounded-full"
 				style="background: var(--accent); box-shadow: 0 0 14px var(--accent-glow);"
 			></div>
 
-			<div class="grid h-full min-h-0 grid-rows-[minmax(0,0.45fr)_auto_minmax(0,1fr)]">
+			<div class="timeline-scroll h-full overflow-y-auto" bind:this={scrollContainer}>
+				<!-- History: full-size cards, dimmed. Scrollable by hand above the active card. -->
 				{#if historyTurns.length > 0}
-					<div
-						class="flex min-h-0 flex-col justify-end overflow-hidden pb-4 opacity-35"
-						data-testid="turn-history"
-					>
+					<div class="pb-4 opacity-35" data-testid="turn-history">
 						{#each historyTurns as turn (turn.key)}
-							<CombatantCard combatant={turn.combatant} variant="history" {cornerSizePercent} />
+							<CombatantCard combatant={turn.combatant} variant="queue" {cornerSizePercent} />
 						{/each}
 					</div>
-				{:else}
-					<div></div>
 				{/if}
 
-				<div>
+				<!-- Active card: always scrolled to ~40% from top. Fly transition on turn change. -->
+				<div bind:this={activeZoneEl}>
 					<div
-						class="mb-4 text-center font-ui text-lg uppercase tracking-wider font-semibold"
+						class="mb-4 text-center font-ui text-lg font-semibold uppercase tracking-wider"
 						style="color: var(--accent);"
 					>
 						&#9733; CURRENT TURN &#9733;
 					</div>
-					<CombatantCard combatant={activeCombatant} variant="active" {cornerSizePercent} />
+					<div class="overflow-hidden">
+						{#key activeCombatant.id}
+							<div in:fly={{ y: flyY, duration: transitionDuration, easing: cubicOut }}>
+								<CombatantCard combatant={activeCombatant} variant="active" {cornerSizePercent} />
+							</div>
+						{/key}
+					</div>
 				</div>
 
-				{#if queueCombatants.length > 0}
-					<div class="min-h-0 overflow-hidden pt-1">
+				<!-- Queue: next 8 turns, spanning into future rounds with dividers. -->
+				{#if queueEntries.length > 0}
+					<div class="pb-8 pt-1">
 						<div
-							class="mb-3 font-ui text-sm uppercase tracking-wider font-semibold"
+							class="mb-3 font-ui text-sm font-semibold uppercase tracking-wider"
 							style="color: var(--accent);"
 						>
 							UP NEXT
 						</div>
-						{#each queueCombatants as combatant (combatant.id)}
-							<CombatantCard {combatant} variant="queue" {cornerSizePercent} />
+						{#each queueEntries as entry (entry.id)}
+							{#if entry.newRound}
+								<div class="my-3 flex items-center gap-3">
+									<div class="h-px flex-1" style="background: var(--accent); opacity: 0.3;"></div>
+									<span
+										class="font-ui text-xs font-semibold uppercase tracking-widest"
+										style="color: var(--accent); opacity: 0.6;"
+									>
+										Round {entry.newRound}
+									</span>
+									<div class="h-px flex-1" style="background: var(--accent); opacity: 0.3;"></div>
+								</div>
+							{/if}
+							<CombatantCard combatant={entry.combatant} variant="queue" {cornerSizePercent} />
 						{/each}
 					</div>
 				{/if}
@@ -265,5 +347,12 @@
 <style>
 	.combat-shell {
 		height: calc(100dvh - 76px - clamp(2.8rem, 6vw, 4.8rem));
+	}
+	/* Hide the scrollbar visually — the timeline is a continuous tape, not a windowed list. */
+	.timeline-scroll {
+		scrollbar-width: none;
+	}
+	.timeline-scroll::-webkit-scrollbar {
+		display: none;
 	}
 </style>

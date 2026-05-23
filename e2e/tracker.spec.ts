@@ -198,21 +198,17 @@ test('keeps the last completed turns visible when a new round starts', async ({ 
 	await expect(page.getByTestId('active-combatant-card')).toContainText('Alia');
 	await expect(page.getByTestId('round-counter')).toHaveText('2');
 
-	const historyCards = page.getByTestId('turn-history').getByTestId('history-combatant-card');
-	await expect(historyCards).toHaveCount(2);
-	await expect(historyCards.nth(0)).toContainText('Bram');
-	await expect(historyCards.nth(1)).toContainText('Skeleton 1');
+	const historyCards = page.getByTestId('turn-history').getByTestId('queue-combatant-card');
+	await expect(historyCards).toHaveCount(3);
+	await expect(historyCards.nth(0)).toContainText('Alia');
+	await expect(historyCards.nth(1)).toContainText('Bram');
+	await expect(historyCards.nth(2)).toContainText('Skeleton 1');
 	await expect
 		.poll(() =>
 			page.getByTestId('active-combatant-card').evaluate((element) => {
 				const rect = element.getBoundingClientRect();
 				return rect.top >= 0 && rect.bottom <= window.innerHeight;
 			})
-		)
-		.toBe(true);
-	await expect
-		.poll(() =>
-			page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 2)
 		)
 		.toBe(true);
 

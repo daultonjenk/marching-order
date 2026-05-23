@@ -72,7 +72,7 @@
 			style="background: {markerColor}; width: {cornerLength}; height: {cornerLength}; clip-path: polygon(100% 0, 100% 100%, 0 100%);"
 			aria-hidden="true"
 		></span>
-		<div class="relative z-10 flex min-h-28 items-center justify-between gap-6 px-12">
+		<div class="relative z-10 flex min-h-28 items-center justify-between gap-6 pl-16 pr-10">
 			<div class="flex-1">
 				<div class="mb-3 font-display text-[clamp(2rem,5vw,3rem)] leading-tight font-bold">
 					{combatant.name}
@@ -126,7 +126,7 @@
 			style="background: {markerColor}; width: {cornerLength}; height: {cornerLength}; clip-path: polygon(100% 0, 100% 100%, 0 100%);"
 			aria-hidden="true"
 		></span>
-		<div class="relative z-10 flex items-center justify-between gap-6 px-8">
+		<div class="relative z-10 flex items-center justify-between gap-6 pl-12 pr-8">
 			<div class="flex-1">
 				<div class="mb-2 font-display text-2xl leading-tight font-bold text-text-heading">
 					{combatant.name}
