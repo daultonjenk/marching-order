@@ -10,19 +10,23 @@
 	let { combatant, variant }: Props = $props();
 
 	const showExactHp = $derived(
-		combatant.type === 'player'
+		combatant.maxHp > 0 && combatant.type === 'player'
 			? settings.current.showPlayerHp
-			: settings.current.showEnemyHp && settings.current.enemyHpFormat === 'exact'
+			: combatant.maxHp > 0 &&
+					settings.current.showEnemyHp &&
+					settings.current.enemyHpFormat === 'exact'
 	);
 
 	const showHpSeverity = $derived(
+		combatant.maxHp > 0 &&
 		combatant.type === 'enemy' &&
 			settings.current.showEnemyHp &&
 			settings.current.enemyHpFormat === 'severity'
 	);
 
 	const showAc = $derived(
-		combatant.type === 'player' ? settings.current.showPlayerAc : settings.current.showEnemyAc
+		combatant.ac > 0 &&
+			(combatant.type === 'player' ? settings.current.showPlayerAc : settings.current.showEnemyAc)
 	);
 
 	const hpSeverity = $derived.by(() => {

@@ -16,7 +16,7 @@
 		>
 			<div class="mb-4 text-5xl">⚔️</div>
 			<div class="mb-2 font-display text-3xl font-bold">Start Combat</div>
-			<div class="text-base opacity-90">Begin initiative tracking with your party</div>
+			<div class="text-base opacity-90">Quick-add names or use your saved lineup</div>
 		</a>
 
 		<a

@@ -82,6 +82,59 @@ test.beforeEach(async ({ request }) => {
 	await resetApp(request);
 });
 
+test('lets DMs quick-add statless combatants during setup', async ({ page, request }) => {
+	const quickPlayer = `Quick Hero ${Date.now().toString(36)}`;
+	const quickEnemy = `Quick Foe ${Date.now().toString(36)}`;
+
+	await request.post('/api/settings', {
+		data: {
+			...defaultSettings,
+			showPlayerHp: true,
+			showPlayerAc: true,
+			showEnemyHp: true,
+			showEnemyAc: true,
+			enemyHpFormat: 'exact'
+		}
+	});
+
+	await page.goto('/tracker');
+	await waitForApp(page);
+
+	const preloadedCombatants = page.getByTestId('setup-combatant');
+	while ((await preloadedCombatants.count()) > 0) {
+		await preloadedCombatants.first().getByRole('button', { name: /remove/i }).click();
+	}
+
+	const quickAdd = page.getByTestId('quick-add-panel');
+	await expect(quickAdd).toBeVisible();
+
+	await quickAdd.getByTestId('quick-combatant-name').fill(quickPlayer);
+	await quickAdd.getByRole('button', { name: /add to lineup/i }).click();
+	await quickAdd.getByRole('button', { name: /^enemy$/i }).click();
+	await quickAdd.getByTestId('quick-combatant-name').fill(quickEnemy);
+	await quickAdd.getByRole('button', { name: /add to lineup/i }).click();
+
+	const setupPlayer = page.getByTestId('setup-combatant').filter({ hasText: quickPlayer });
+	const setupEnemy = page.getByTestId('setup-combatant').filter({ hasText: quickEnemy });
+	await expect(setupPlayer).toBeVisible();
+	await expect(setupEnemy).toBeVisible();
+	await expect(setupPlayer.getByTestId('setup-combatant-hp')).toHaveCount(0);
+	await expect(setupPlayer.getByTestId('setup-combatant-ac')).toHaveCount(0);
+	await expect(setupEnemy.getByTestId('setup-combatant-hp')).toHaveCount(0);
+	await expect(setupEnemy.getByTestId('setup-combatant-ac')).toHaveCount(0);
+
+	await page.getByRole('button', { name: /roll initiative/i }).click();
+	await page.getByPlaceholder('Initiative roll').fill('20');
+	await page.getByRole('button', { name: /next/i }).click();
+	await page.getByPlaceholder('Initiative roll').fill('10');
+	await page.getByRole('button', { name: /begin combat/i }).click();
+
+	const activeCombatant = page.getByTestId('active-combatant-card');
+	await expect(activeCombatant).toContainText(quickPlayer);
+	await expect(activeCombatant.getByTestId('combatant-hp')).toHaveCount(0);
+	await expect(activeCombatant.getByTestId('combatant-ac')).toHaveCount(0);
+});
+
 test('keeps the last completed turns visible when a new round starts', async ({ page, request }) => {
 	await seedCombat(request);
 

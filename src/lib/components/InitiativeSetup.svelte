@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Combatant, CombatState, PartyMember, Enemy, Encounter } from '$lib/types';
+	import type { CombatState, PartyMember, Enemy, Encounter } from '$lib/types';
 	import { settings } from '$lib/stores.svelte';
 
 	interface Props {
@@ -11,7 +11,17 @@
 
 	let { party, enemies, encounters, onStart }: Props = $props();
 
-	let combatants = $state<Array<{ name: string; type: 'player' | 'enemy'; initiative: number; maxHp: number; ac: number; level?: number; passivePerception?: number }>>(
+	type SetupCombatant = {
+		name: string;
+		type: 'player' | 'enemy';
+		initiative: number;
+		maxHp: number;
+		ac: number;
+		level?: number;
+		passivePerception?: number;
+	};
+
+	let combatants = $state<SetupCombatant[]>(
 		party.map((p) => ({
 			name: p.name,
 			type: 'player' as const,
@@ -25,14 +35,23 @@
 	let step = $state<'select' | 'initiative'>('select');
 	let currentInitiativeIndex = $state(0);
 	let initiativeInput = $state('');
+	let quickType = $state<'player' | 'enemy'>('player');
+	let quickName = $state('');
 
-	function showExactHp(combatant: { type: 'player' | 'enemy' }) {
+	function quickTypeButtonClass(type: 'player' | 'enemy') {
+		const selectedClass = quickType === type ? 'bg-bg-card text-text-heading' : 'text-text-muted';
+		return `min-h-9 cursor-pointer rounded-sm px-4 font-ui text-sm font-semibold uppercase tracking-wider transition-colors ${selectedClass}`;
+	}
+
+	function showExactHp(combatant: SetupCombatant) {
+		if (combatant.maxHp <= 0) return false;
 		return combatant.type === 'player'
 			? settings.current.showPlayerHp
 			: settings.current.showEnemyHp && settings.current.enemyHpFormat === 'exact';
 	}
 
-	function showHpSeverity(combatant: { type: 'player' | 'enemy' }) {
+	function showHpSeverity(combatant: SetupCombatant) {
+		if (combatant.maxHp <= 0) return false;
 		return (
 			combatant.type === 'enemy' &&
 			settings.current.showEnemyHp &&
@@ -40,8 +59,39 @@
 		);
 	}
 
-	function showAc(combatant: { type: 'player' | 'enemy' }) {
+	function showAc(combatant: SetupCombatant) {
+		if (combatant.ac <= 0) return false;
 		return combatant.type === 'player' ? settings.current.showPlayerAc : settings.current.showEnemyAc;
+	}
+
+	function addQuickCombatant() {
+		const name = quickName.trim();
+		if (!name) return;
+
+		const existingCount = combatants.filter(
+			(c) => c.type === quickType && (c.name === name || c.name.startsWith(`${name} `))
+		).length;
+		const displayName =
+			quickType === 'enemy' && existingCount > 0 ? `${name} ${existingCount + 1}` : name;
+
+		combatants = [
+			...combatants,
+			{
+				name: displayName,
+				type: quickType,
+				initiative: 0,
+				maxHp: 0,
+				ac: 0
+			}
+		];
+		quickName = '';
+	}
+
+	function handleQuickKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			addQuickCombatant();
+		}
 	}
 
 	function loadEncounter(encounter: Encounter) {
@@ -195,6 +245,59 @@
 			</div>
 		{/if}
 
+		<!-- Quick add -->
+		<div
+			data-testid="quick-add-panel"
+			class="mb-6 rounded-md border-2 border-border bg-bg-card p-6"
+			style="box-shadow: var(--shadow-sm);"
+		>
+			<div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+				<div>
+					<h2 class="font-display text-xl font-bold text-text-heading">Quick Add</h2>
+					<p class="text-sm text-text-muted">Add a name now, enter initiative next.</p>
+				</div>
+				<div class="flex min-h-11 rounded-sm border-2 border-border bg-bg-paper p-1">
+					<button
+						type="button"
+						onclick={() => (quickType = 'player')}
+						class={quickTypeButtonClass('player')}
+						aria-pressed={quickType === 'player'}
+					>
+						Player
+					</button>
+					<button
+						type="button"
+						onclick={() => (quickType = 'enemy')}
+						class={quickTypeButtonClass('enemy')}
+						aria-pressed={quickType === 'enemy'}
+					>
+						Enemy
+					</button>
+				</div>
+			</div>
+			<div class="flex flex-col gap-3 sm:flex-row">
+				<label class="sr-only" for="quick-combatant-name">Quick combatant name</label>
+				<input
+					id="quick-combatant-name"
+					data-testid="quick-combatant-name"
+					type="text"
+					bind:value={quickName}
+					onkeydown={handleQuickKeydown}
+					placeholder={quickType === 'player' ? 'Player name' : 'Enemy name'}
+					class="min-h-11 flex-1 rounded-sm border-2 border-border bg-bg-paper px-4 py-3 text-base focus:border-[var(--accent)] focus:outline-none"
+				/>
+				<button
+					type="button"
+					onclick={addQuickCombatant}
+					disabled={!quickName.trim()}
+					class="min-h-11 cursor-pointer rounded-sm border-none px-5 py-3 font-ui text-sm font-semibold uppercase tracking-wider text-bg-paper transition-all duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
+					style="background: var(--accent); box-shadow: var(--shadow-sm);"
+				>
+					Add to Lineup
+				</button>
+			</div>
+		</div>
+
 		<!-- Load Encounter -->
 		{#if encounters.length > 0}
 			<div
@@ -240,11 +343,11 @@
 			</div>
 		{/if}
 
-		{#if party.length === 0 && enemies.length === 0}
+		{#if party.length === 0 && enemies.length === 0 && combatants.length === 0}
 			<div class="rounded-md border-2 border-border bg-bg-card p-8 text-center"
 				style="box-shadow: var(--shadow-sm);">
 				<p class="mb-4 text-text-muted">
-					No party members or enemies yet. Add some first!
+					No saved party members or enemies yet. Quick add works for this fight, or save reusable entries first.
 				</p>
 				<div class="flex justify-center gap-4">
 					<a

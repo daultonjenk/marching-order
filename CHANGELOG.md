@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Combat setup now has an always-available quick add for combat-only player and enemy names.
 - Settings now include a toggle for showing player AC.
 - Playwright end-to-end coverage for turn history and enemy stat visibility.
 - Settings now include dark mode and wallpaper background toggles.
