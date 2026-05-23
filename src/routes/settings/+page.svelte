@@ -19,6 +19,46 @@
 		<div class="flex flex-col gap-6">
 			<div class="flex items-center justify-between gap-6">
 				<div class="flex-1">
+					<div class="mb-1 font-semibold">Dark Mode</div>
+					<div class="text-sm text-text-muted">Use the darker palette for dim rooms and projector play</div>
+				</div>
+				<button
+					onclick={() => settings.update({ darkMode: !settings.current.darkMode })}
+					class="relative h-8 w-14 cursor-pointer rounded-full border-none transition-colors duration-200"
+					style="background: {settings.current.darkMode ? 'var(--accent)' : '#CAC2B8'};"
+					role="switch"
+					aria-checked={settings.current.darkMode}
+					aria-label="Dark Mode"
+				>
+					<div
+						class="absolute top-1 h-6 w-6 rounded-full bg-bg-paper transition-[left] duration-200"
+						style="left: {settings.current.darkMode ? '28px' : '4px'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"
+					></div>
+				</button>
+			</div>
+
+			<div class="flex items-center justify-between gap-6">
+				<div class="flex-1">
+					<div class="mb-1 font-semibold">Wallpaper Background</div>
+					<div class="text-sm text-text-muted">Show the subtle diamond texture behind app screens</div>
+				</div>
+				<button
+					onclick={() => settings.update({ showWallpaper: !settings.current.showWallpaper })}
+					class="relative h-8 w-14 cursor-pointer rounded-full border-none transition-colors duration-200"
+					style="background: {settings.current.showWallpaper ? 'var(--accent)' : '#CAC2B8'};"
+					role="switch"
+					aria-checked={settings.current.showWallpaper}
+					aria-label="Wallpaper Background"
+				>
+					<div
+						class="absolute top-1 h-6 w-6 rounded-full bg-bg-paper transition-[left] duration-200"
+						style="left: {settings.current.showWallpaper ? '28px' : '4px'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"
+					></div>
+				</button>
+			</div>
+
+			<div class="flex items-center justify-between gap-6">
+				<div class="flex-1">
 					<div class="mb-1 font-semibold">Show Player HP</div>
 					<div class="text-sm text-text-muted">Display hit points for player characters</div>
 				</div>

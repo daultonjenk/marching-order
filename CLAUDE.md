@@ -41,9 +41,11 @@ Never call D1 directly from components. All data access goes through `src/lib/st
 The app is player-facing by default (projected on a wall). Enemy max HP and AC are **never shown** unless the DM explicitly enables them in settings. When rendering combatant data, always check the combatant type and the relevant setting before displaying sensitive fields. See the "DM-Only vs Public Data" section in SPEC.md.
 
 ### Projector-First Design
-- High contrast, large type, minimal chrome
+- Clear contrast and large type, without making the app feel sterile
 - Current combatant's name must be readable from 8-10 feet away
 - Color encodes meaning (status effects, HP severity, active turn), not decoration
+- Subtle texture is acceptable when it does not reduce readability; provide user control for projector/environment preferences
+- Use measured chrome: enough borders, shadows, and visual warmth to feel pleasant during desktop prep, but avoid toy-like controls or decorative clutter during combat
 - No busy backgrounds, no gratuitous animations
 - Minimum interactive target size: 44×44px
 

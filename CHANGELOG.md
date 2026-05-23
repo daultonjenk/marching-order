@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Combat mode now uses the shared app shell so the menu remains accessible during fights.
+- Navigation, card corners, and shadows have been tightened for a less toy-like visual feel.
+- Initiative tracker timeline spine now uses a solid accent color for a cleaner projector display.
+- Project guidance now clarifies the balance between projector readability and a pleasant desktop setup experience.
+
 ### Added
 
+- Settings now include dark mode and wallpaper background toggles.
 - SvelteKit project scaffold with TypeScript, Tailwind CSS v4, and Cloudflare Pages adapter
 - Design system with warm earthy palette, Lora/Libre Baskerville fonts, diamond wallpaper background, and 6 accent color presets
 - Core data types for PartyMember, Enemy, Encounter, Combatant, CombatState, and AppSettings

@@ -69,6 +69,7 @@ export interface TurnHistoryEntry {
 
 export interface AppSettings {
 	darkMode: boolean;
+	showWallpaper: boolean;
 	showPlayerHp: boolean;
 	showEnemyHp: boolean;
 	showEnemyAc: boolean;

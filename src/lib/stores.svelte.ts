@@ -7,13 +7,13 @@ class SettingsState {
 
 	init(serverSettings: AppSettings) {
 		this.current = { ...DEFAULT_SETTINGS, ...serverSettings };
-		this.applyAccentColor();
+		this.applyAppearance();
 		this.loaded = true;
 	}
 
 	async update(patch: Partial<AppSettings>) {
 		this.current = { ...this.current, ...patch };
-		this.applyAccentColor();
+		this.applyAppearance();
 		await fetch('/api/settings', {
 			method: 'POST',
 			body: JSON.stringify(this.current),
@@ -21,10 +21,12 @@ class SettingsState {
 		});
 	}
 
-	private applyAccentColor() {
+	private applyAppearance() {
 		if (typeof document === 'undefined') return;
 		const color = ACCENT_COLORS.find((c) => c.value === this.current.accentColor) ?? ACCENT_COLORS[0];
 		const root = document.documentElement;
+		root.dataset.theme = this.current.darkMode ? 'dark' : 'light';
+		root.dataset.wallpaper = this.current.showWallpaper ? 'on' : 'off';
 		root.style.setProperty('--accent', color.value);
 		root.style.setProperty('--accent-light', color.light);
 		root.style.setProperty('--accent-glow', color.glow);
