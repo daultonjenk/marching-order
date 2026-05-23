@@ -99,16 +99,17 @@
 		}
 	}
 
-	const historyCombatants = $derived.by(() => {
+	const historyTurns = $derived.by(() => {
 		if (!combatState) return [];
-		const idx = combatState.currentTurnIndex;
-		const result: Combatant[] = [];
-		for (let i = Math.max(0, idx - 2); i < idx; i++) {
-			if (!combatState.combatants[i]?.isDead) {
-				result.push(combatState.combatants[i]);
-			}
-		}
-		return result;
+		const history = combatState.history;
+		const startIndex = Math.max(0, history.length - 2);
+		return history
+			.slice(startIndex)
+			.map((entry, index) => ({
+				combatant: entry.snapshot[entry.turnIndex],
+				key: `${entry.round}-${entry.turnIndex}-${startIndex + index}`
+			}))
+			.filter((turn): turn is { combatant: Combatant; key: string } => Boolean(turn.combatant));
 	});
 
 	const activeCombatant = $derived(
@@ -136,7 +137,7 @@
 			style="background: var(--accent); box-shadow: var(--shadow-sm);"
 		>
 			<div class="font-ui text-[0.625rem] uppercase tracking-wider opacity-90">Round</div>
-			<div class="text-xl leading-none font-bold">{combatState.round}</div>
+			<div class="text-xl leading-none font-bold" data-testid="round-counter">{combatState.round}</div>
 		</div>
 
 		<button
@@ -173,10 +174,10 @@
 			></div>
 
 			<!-- History -->
-			{#if historyCombatants.length > 0}
-				<div class="mb-8 opacity-35">
-					{#each historyCombatants as combatant (combatant.id)}
-						<CombatantCard {combatant} variant="history" />
+			{#if historyTurns.length > 0}
+				<div class="mb-8 opacity-35" data-testid="turn-history">
+					{#each historyTurns as turn (turn.key)}
+						<CombatantCard combatant={turn.combatant} variant="history" />
 					{/each}
 				</div>
 			{/if}

@@ -11,6 +11,7 @@
 
 	onMount(() => {
 		settings.init(data.settings);
+		document.documentElement.dataset.appReady = 'true';
 	});
 </script>
 

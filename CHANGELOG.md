@@ -14,8 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initiative tracker timeline spine now uses a solid accent color for a cleaner projector display.
 - Project guidance now clarifies the balance between projector readability and a pleasant desktop setup experience.
 
+### Fixed
+
+- The tracker now keeps recent past turns visible when initiative wraps into a new round.
+- Enemy HP, HP severity, and AC are no longer shown on read-only screens when their display settings are disabled.
+
 ### Added
 
+- Playwright end-to-end coverage for turn history and enemy stat visibility.
 - Settings now include dark mode and wallpaper background toggles.
 - SvelteKit project scaffold with TypeScript, Tailwind CSS v4, and Cloudflare Pages adapter
 - Design system with warm earthy palette, Lora/Libre Baskerville fonts, diamond wallpaper background, and 6 accent color presets

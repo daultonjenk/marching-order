@@ -9,10 +9,16 @@
 
 	let { combatant, variant }: Props = $props();
 
-	const showHp = $derived(
+	const showExactHp = $derived(
 		combatant.type === 'player'
 			? settings.current.showPlayerHp
-			: settings.current.showEnemyHp
+			: settings.current.showEnemyHp && settings.current.enemyHpFormat === 'exact'
+	);
+
+	const showHpSeverity = $derived(
+		combatant.type === 'enemy' &&
+			settings.current.showEnemyHp &&
+			settings.current.enemyHpFormat === 'severity'
 	);
 
 	const showAc = $derived(
@@ -36,6 +42,7 @@
 
 {#if variant === 'active'}
 	<div
+		data-testid="active-combatant-card"
 		class="mb-6 rounded-md border-4 border-text-heading p-8 text-bg-paper md:px-10 md:py-12"
 		style="background: var(--accent); box-shadow: 0 12px 32px var(--accent-shadow), 0 0 0 1px rgba(255,255,255,0.1) inset;"
 	>
@@ -45,12 +52,12 @@
 					{combatant.name}
 				</div>
 				<div class="flex gap-8 text-[clamp(1.25rem,2.5vw,1.75rem)] opacity-95">
-					{#if showHp}
-						<span class="font-semibold">
+					{#if showExactHp}
+						<span class="font-semibold" data-testid="combatant-hp">
 							HP: {combatant.currentHp}/{combatant.maxHp}
 						</span>
-					{:else if combatant.type === 'enemy' && settings.current.enemyHpFormat === 'severity'}
-						<span class="flex items-center gap-2 font-semibold">
+					{:else if showHpSeverity}
+						<span class="flex items-center gap-2 font-semibold" data-testid="combatant-hp-severity">
 							HP:
 							<span
 								class="inline-block h-4 w-4 rounded-full"
@@ -59,7 +66,7 @@
 						</span>
 					{/if}
 					{#if showAc}
-						<span class="font-semibold">AC: {combatant.ac}</span>
+						<span class="font-semibold" data-testid="combatant-ac">AC: {combatant.ac}</span>
 					{/if}
 				</div>
 				{#if combatant.statuses.length > 0}
@@ -82,6 +89,7 @@
 	</div>
 {:else}
 	<div
+		data-testid="{variant}-combatant-card"
 		class="mb-4 rounded-md border-2 border-border bg-bg-card p-6 transition-all duration-200 hover:-translate-y-0.5"
 		class:opacity-60={combatant.isDown}
 		style="box-shadow: var(--shadow-sm);"
@@ -92,13 +100,21 @@
 					{combatant.name}
 				</div>
 				<div class="flex gap-6 text-base opacity-95">
-					{#if showHp}
-						<span class="font-semibold">
+					{#if showExactHp}
+						<span class="font-semibold" data-testid="combatant-hp">
 							HP: {combatant.currentHp}/{combatant.maxHp}
+						</span>
+					{:else if showHpSeverity}
+						<span class="flex items-center gap-2 font-semibold" data-testid="combatant-hp-severity">
+							HP:
+							<span
+								class="inline-block h-3 w-3 rounded-full"
+								style="background: {severityColors[hpSeverity]};"
+							></span>
 						</span>
 					{/if}
 					{#if showAc}
-						<span class="font-semibold">AC: {combatant.ac}</span>
+						<span class="font-semibold" data-testid="combatant-ac">AC: {combatant.ac}</span>
 					{/if}
 				</div>
 				{#if combatant.statuses.length > 0}

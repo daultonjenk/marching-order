@@ -200,8 +200,106 @@ export function createStorage(platform: App.Platform | undefined): StorageAdapte
 	if (platform?.env?.DB) {
 		return new D1StorageAdapter(platform.env.DB);
 	}
+	if (typeof window === 'undefined') {
+		return memoryStorage;
+	}
 	return new LocalStorageAdapter();
 }
+
+type MemoryState = {
+	party: PartyMember[];
+	enemies: Enemy[];
+	encounters: Encounter[];
+	combat: CombatState | null;
+	settings: AppSettings;
+};
+
+const memoryState: MemoryState = {
+	party: [],
+	enemies: [],
+	encounters: [],
+	combat: null,
+	settings: { ...DEFAULT_SETTINGS }
+};
+
+class MemoryStorageAdapter implements StorageAdapter {
+	async getParty(): Promise<PartyMember[]> {
+		return [...memoryState.party].sort((a, b) => a.name.localeCompare(b.name));
+	}
+
+	async savePartyMember(member: PartyMember): Promise<void> {
+		const idx = memoryState.party.findIndex((m) => m.id === member.id);
+		if (idx >= 0) {
+			memoryState.party[idx] = member;
+		} else {
+			memoryState.party.push(member);
+		}
+	}
+
+	async deletePartyMember(id: string): Promise<void> {
+		memoryState.party = memoryState.party.filter((m) => m.id !== id);
+	}
+
+	async getCustomEnemies(): Promise<Enemy[]> {
+		return [...memoryState.enemies].sort((a, b) => a.name.localeCompare(b.name));
+	}
+
+	async saveCustomEnemy(enemy: Enemy): Promise<void> {
+		const idx = memoryState.enemies.findIndex((e) => e.id === enemy.id);
+		if (idx >= 0) {
+			memoryState.enemies[idx] = enemy;
+		} else {
+			memoryState.enemies.push(enemy);
+		}
+	}
+
+	async deleteCustomEnemy(id: string): Promise<void> {
+		memoryState.enemies = memoryState.enemies.filter((e) => e.id !== id);
+		memoryState.encounters = memoryState.encounters.map((encounter) => ({
+			...encounter,
+			entries: encounter.entries.filter((entry) => entry.enemyId !== id)
+		}));
+	}
+
+	async getEncounters(): Promise<Encounter[]> {
+		return [...memoryState.encounters].sort((a, b) => a.name.localeCompare(b.name));
+	}
+
+	async saveEncounter(encounter: Encounter): Promise<void> {
+		const idx = memoryState.encounters.findIndex((e) => e.id === encounter.id);
+		if (idx >= 0) {
+			memoryState.encounters[idx] = encounter;
+		} else {
+			memoryState.encounters.push(encounter);
+		}
+	}
+
+	async deleteEncounter(id: string): Promise<void> {
+		memoryState.encounters = memoryState.encounters.filter((e) => e.id !== id);
+	}
+
+	async getCombatState(): Promise<CombatState | null> {
+		return memoryState.combat;
+	}
+
+	async saveCombatState(state: CombatState): Promise<void> {
+		memoryState.combat = state;
+	}
+
+	async clearCombatState(): Promise<void> {
+		memoryState.combat = null;
+	}
+
+	async getSettings(): Promise<AppSettings> {
+		return { ...DEFAULT_SETTINGS, ...memoryState.settings };
+	}
+
+	async saveSettings(settings: AppSettings): Promise<void> {
+		memoryState.settings = { ...DEFAULT_SETTINGS, ...settings };
+	}
+}
+
+const memoryStorage = new MemoryStorageAdapter();
 
 class LocalStorageAdapter implements StorageAdapter {
 	private get<T>(key: string, fallback: T): T {

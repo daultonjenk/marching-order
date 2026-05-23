@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Enemy, Encounter } from '$lib/types';
 	import { enhance } from '$app/forms';
+	import { settings } from '$lib/stores.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -70,6 +71,14 @@
 
 	function getEnemyName(id: string): string {
 		return enemies.find((e: Enemy) => e.id === id)?.name ?? 'Unknown';
+	}
+
+	function showEnemyExactHp() {
+		return settings.current.showEnemyHp && settings.current.enemyHpFormat === 'exact';
+	}
+
+	function showEnemyHpSeverity() {
+		return settings.current.showEnemyHp && settings.current.enemyHpFormat === 'severity';
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -210,13 +219,24 @@
 								<div class="font-display text-xl font-bold text-text-heading">
 									{enemy.name}
 								</div>
-								<div class="flex gap-4 text-sm text-text-muted">
-									<span>HP {enemy.maxHp}</span>
-									<span>AC {enemy.ac}</span>
-									{#if enemy.abilities}
-										<span>{enemy.abilities}</span>
-									{/if}
-								</div>
+								{#if showEnemyExactHp() || showEnemyHpSeverity() || settings.current.showEnemyAc || enemy.abilities}
+									<div class="flex flex-wrap gap-4 text-sm text-text-muted" data-testid="enemy-library-stats">
+										{#if showEnemyExactHp()}
+											<span data-testid="enemy-library-hp">HP {enemy.maxHp}</span>
+										{:else if showEnemyHpSeverity()}
+											<span class="flex items-center gap-1.5" data-testid="enemy-library-hp-severity">
+												HP
+												<span class="inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
+											</span>
+										{/if}
+										{#if settings.current.showEnemyAc}
+											<span data-testid="enemy-library-ac">AC {enemy.ac}</span>
+										{/if}
+										{#if enemy.abilities}
+											<span>{enemy.abilities}</span>
+										{/if}
+									</div>
+								{/if}
 							</div>
 							<div class="flex gap-2">
 								<button

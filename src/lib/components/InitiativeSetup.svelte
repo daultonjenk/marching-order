@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Combatant, CombatState, PartyMember, Enemy, Encounter } from '$lib/types';
+	import { settings } from '$lib/stores.svelte';
 
 	interface Props {
 		party: PartyMember[];
@@ -24,6 +25,24 @@
 	let step = $state<'select' | 'initiative'>('select');
 	let currentInitiativeIndex = $state(0);
 	let initiativeInput = $state('');
+
+	function showExactHp(combatant: { type: 'player' | 'enemy' }) {
+		return combatant.type === 'player'
+			? settings.current.showPlayerHp
+			: settings.current.showEnemyHp && settings.current.enemyHpFormat === 'exact';
+	}
+
+	function showHpSeverity(combatant: { type: 'player' | 'enemy' }) {
+		return (
+			combatant.type === 'enemy' &&
+			settings.current.showEnemyHp &&
+			settings.current.enemyHpFormat === 'severity'
+		);
+	}
+
+	function showAc(combatant: { type: 'player' | 'enemy' }) {
+		return combatant.type === 'player' ? true : settings.current.showEnemyAc;
+	}
 
 	function loadEncounter(encounter: Encounter) {
 		for (const entry of encounter.entries) {
@@ -139,6 +158,7 @@
 				<div class="flex flex-col gap-2">
 					{#each combatants as c, i}
 						<div
+							data-testid="setup-combatant"
 							class="flex items-center justify-between rounded-sm border border-border/50 bg-bg-paper px-4 py-3"
 						>
 							<div class="flex items-center gap-3">
@@ -146,9 +166,21 @@
 									{c.type === 'player' ? '⚔️' : '💀'}
 								</span>
 								<span class="font-semibold">{c.name}</span>
-								<span class="text-sm text-text-muted">
-									HP: {c.maxHp} &middot; AC: {c.ac}
-								</span>
+								{#if showExactHp(c) || showHpSeverity(c) || showAc(c)}
+									<span class="flex items-center gap-3 text-sm text-text-muted">
+										{#if showExactHp(c)}
+											<span data-testid="setup-combatant-hp">HP: {c.maxHp}</span>
+										{:else if showHpSeverity(c)}
+											<span class="flex items-center gap-1.5" data-testid="setup-combatant-hp-severity">
+												HP:
+												<span class="inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>
+											</span>
+										{/if}
+										{#if showAc(c)}
+											<span data-testid="setup-combatant-ac">AC: {c.ac}</span>
+										{/if}
+									</span>
+								{/if}
 							</div>
 							<button
 								onclick={() => removeCombatant(i)}
