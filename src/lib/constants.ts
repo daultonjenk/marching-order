@@ -29,7 +29,8 @@ export const ACCENT_COLORS = [
 export const DEFAULT_SETTINGS: AppSettings = {
 	darkMode: false,
 	showWallpaper: true,
-	showPlayerHp: true,
+	showPlayerHp: false,
+	showPlayerAc: false,
 	showEnemyHp: false,
 	showEnemyAc: false,
 	enemyHpFormat: 'severity',

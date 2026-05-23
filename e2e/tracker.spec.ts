@@ -3,7 +3,8 @@ import { expect, test, type APIRequestContext } from '@playwright/test';
 const defaultSettings = {
 	darkMode: false,
 	showWallpaper: true,
-	showPlayerHp: true,
+	showPlayerHp: false,
+	showPlayerAc: false,
 	showEnemyHp: false,
 	showEnemyAc: false,
 	enemyHpFormat: 'severity',
@@ -132,8 +133,64 @@ test('hides enemy stats on the combat setup list when enemy stat display is disa
 	await expect(setupEnemy.getByTestId('setup-combatant-hp')).toHaveCount(0);
 	await expect(setupEnemy.getByTestId('setup-combatant-hp-severity')).toHaveCount(0);
 	await expect(setupEnemy.getByTestId('setup-combatant-ac')).toHaveCount(0);
-	await expect(setupEnemy).not.toContainText('44');
-	await expect(setupEnemy).not.toContainText('18');
+	await expect(setupEnemy).not.toContainText('HP: 44');
+	await expect(setupEnemy).not.toContainText('AC: 18');
+});
+
+test('respects player HP and AC settings on setup and tracker cards', async ({ page, request }) => {
+	const playerName = `Private Hero ${Date.now().toString(36)}`;
+
+	await page.goto('/party');
+	await waitForApp(page);
+	await page.getByRole('button', { name: /\+ add member/i }).click();
+	await page.getByLabel('Name').fill(playerName);
+	await page.getByLabel('AC').fill('19');
+	await page.getByLabel('Max HP').fill('42');
+	await page.getByLabel('Level').fill('5');
+	await page.getByLabel('Passive Perception').fill('14');
+	await page.getByRole('button', { name: /add to party/i }).click();
+	await expect(page.getByText(playerName)).toBeVisible();
+
+	await page.goto('/tracker');
+	await waitForApp(page);
+
+	const setupPlayer = page.getByTestId('setup-combatant').filter({ hasText: playerName });
+	await expect(setupPlayer).toBeVisible();
+	await expect(setupPlayer.getByTestId('setup-combatant-hp')).toHaveCount(0);
+	await expect(setupPlayer.getByTestId('setup-combatant-ac')).toHaveCount(0);
+	await expect(setupPlayer).not.toContainText('HP: 42');
+	await expect(setupPlayer).not.toContainText('AC: 19');
+
+	await request.post('/api/settings', {
+		data: {
+			...defaultSettings,
+			showPlayerHp: true,
+			showPlayerAc: true
+		}
+	});
+	await page.reload();
+	await waitForApp(page);
+
+	await expect(setupPlayer.getByTestId('setup-combatant-hp')).toContainText('HP: 42');
+	await expect(setupPlayer.getByTestId('setup-combatant-ac')).toContainText('AC: 19');
+
+	await seedCombat(request);
+	await page.goto('/tracker');
+	await waitForApp(page);
+
+	const activePlayer = page.getByTestId('active-combatant-card');
+	await expect(activePlayer).toContainText('Alia');
+	await expect(activePlayer.getByTestId('combatant-hp')).toContainText('HP: 22/22');
+	await expect(activePlayer.getByTestId('combatant-ac')).toContainText('AC: 16');
+
+	await request.post('/api/settings', { data: defaultSettings });
+	await page.reload();
+	await waitForApp(page);
+
+	await expect(activePlayer.getByTestId('combatant-hp')).toHaveCount(0);
+	await expect(activePlayer.getByTestId('combatant-ac')).toHaveCount(0);
+	await expect(activePlayer).not.toContainText('22/22');
+	await expect(activePlayer).not.toContainText('AC: 16');
 });
 
 test('respects enemy HP format and AC settings on tracker cards', async ({ page, request }) => {

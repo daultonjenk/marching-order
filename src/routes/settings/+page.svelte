@@ -79,6 +79,26 @@
 
 			<div class="flex items-center justify-between gap-6">
 				<div class="flex-1">
+					<div class="mb-1 font-semibold">Show Player AC</div>
+					<div class="text-sm text-text-muted">Display armor class for player characters</div>
+				</div>
+				<button
+					onclick={() => settings.update({ showPlayerAc: !settings.current.showPlayerAc })}
+					class="relative h-7 w-[52px] cursor-pointer rounded-full border-none transition-colors duration-200"
+					style="background: {settings.current.showPlayerAc ? 'var(--accent)' : '#CAC2B8'};"
+					role="switch"
+					aria-checked={settings.current.showPlayerAc}
+					aria-label="Show Player AC"
+				>
+					<div
+						class="absolute top-1 h-5 w-5 rounded-full bg-bg-paper transition-[left] duration-200"
+						style="left: {settings.current.showPlayerAc ? '28px' : '4px'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"
+					></div>
+				</button>
+			</div>
+
+			<div class="flex items-center justify-between gap-6">
+				<div class="flex-1">
 					<div class="mb-1 font-semibold">Show Enemy HP</div>
 					<div class="text-sm text-text-muted">Display hit points for enemy combatants</div>
 				</div>

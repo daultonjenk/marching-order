@@ -41,7 +41,7 @@
 	}
 
 	function showAc(combatant: { type: 'player' | 'enemy' }) {
-		return combatant.type === 'player' ? true : settings.current.showEnemyAc;
+		return combatant.type === 'player' ? settings.current.showPlayerAc : settings.current.showEnemyAc;
 	}
 
 	function loadEncounter(encounter: Encounter) {

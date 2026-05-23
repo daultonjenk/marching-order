@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Player HP and AC now default to hidden on initiative and idle screens.
 - Combat mode now uses the shared app shell so the menu remains accessible during fights.
 - Navigation, card corners, and shadows have been tightened for a less toy-like visual feel.
 - Initiative tracker timeline spine now uses a solid accent color for a cleaner projector display.
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Settings now include a toggle for showing player AC.
 - Playwright end-to-end coverage for turn history and enemy stat visibility.
 - Settings now include dark mode and wallpaper background toggles.
 - SvelteKit project scaffold with TypeScript, Tailwind CSS v4, and Cloudflare Pages adapter

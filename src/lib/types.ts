@@ -71,6 +71,7 @@ export interface AppSettings {
 	darkMode: boolean;
 	showWallpaper: boolean;
 	showPlayerHp: boolean;
+	showPlayerAc: boolean;
 	showEnemyHp: boolean;
 	showEnemyAc: boolean;
 	enemyHpFormat: 'exact' | 'severity';

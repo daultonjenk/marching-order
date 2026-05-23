@@ -22,7 +22,7 @@
 	);
 
 	const showAc = $derived(
-		combatant.type === 'player' ? true : settings.current.showEnemyAc
+		combatant.type === 'player' ? settings.current.showPlayerAc : settings.current.showEnemyAc
 	);
 
 	const hpSeverity = $derived.by(() => {

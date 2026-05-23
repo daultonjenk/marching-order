@@ -76,7 +76,9 @@
 
 			<div class="flex justify-center gap-8 text-xl text-text-muted">
 				<span>Level {member.level}</span>
-				<span>AC {member.ac}</span>
+				{#if settings.current.showPlayerAc}
+					<span>AC {member.ac}</span>
+				{/if}
 				{#if settings.current.showPlayerHp}
 					<span>HP {member.currentHp}/{member.maxHp}</span>
 				{/if}
